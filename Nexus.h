@@ -7,6 +7,12 @@
 
 #include "imgui/imgui.h"
 
+#define NEXUS_API_VERSION 1
+
+typedef void (*ADDON_RENDER)(bool aIsUIVisible);
+typedef void (*GUI_REGISTER)(ADDON_RENDER aRenderCallback);
+typedef void (*GUI_UNREGISTER)(ADDON_RENDER aRenderCallback);
+
 // MinHook Error Codes.
 enum MH_STATUS
 {
@@ -69,8 +75,8 @@ typedef void		(*LOGGER_LOGA)							(ELogLevel aLogLevel, const char* aFmt, ...);
 typedef void		(*LOGGER_ADDREM)						(ILogger* aLogger);
 
 typedef void		(*EVENTS_CONSUME)						(void* aEventArgs);
-typedef void		(*EVENTS_RAISE)							(std::string aEventName, void* aEventData);
-typedef void		(*EVENTS_SUBSCRIBE)						(std::string aEventName, EVENTS_CONSUME aConsumeEventCallback);
+typedef void		(*EVENTS_RAISE)							(const char* aEventName, void* aEventData);
+typedef void		(*EVENTS_SUBSCRIBE)						(const char* aEventName, EVENTS_CONSUME aConsumeEventCallback);
 
 struct Keybind
 {
@@ -80,12 +86,15 @@ struct Keybind
 	bool Shift;
 };
 
-typedef void		(*KEYBINDS_PROCESS)						(std::string aIdentifier);
-typedef void		(*KEYBINDS_REGISTER)					(std::string aIdentifier, KEYBINDS_PROCESS aKeybindHandler, std::string aKeybind);
-typedef void		(*KEYBINDS_UNREGISTER)					(std::string aIdentifier);
+typedef void (*KEYBINDS_PROCESS)(const char* aIdentifier);
+typedef void (*KEYBINDS_REGISTER)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, const char* aKeybind);
+typedef void (*KEYBINDS_UNREGISTER)(const char* aIdentifier);
+typedef bool (*ADDON_WNDPROC)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+typedef void (*KEYBINDS_REGISTERWNDPROC)(ADDON_WNDPROC aWndProcCallback);
+typedef void (*KEYBINDS_UNREGISTERWNDPROC)(ADDON_WNDPROC aWndProcCallback);
 
-typedef void*		(*DATALINK_GETRESOURCE)					(std::string aIdentifier);
-typedef void*		(*DATALINK_SHARERESOURCE)				(std::string aIdentifier, size_t aResourceSize);
+typedef void*		(*DATALINK_GETRESOURCE)					(const char* aIdentifier);
+typedef void*		(*DATALINK_SHARERESOURCE)				(const char* aIdentifier, size_t aResourceSize);
 
 struct Texture
 {
@@ -94,21 +103,24 @@ struct Texture
 	ID3D11ShaderResourceView*	Resource;
 };
 
-typedef void		(*TEXTURES_RECEIVECALLBACK)				(std::string aIdentifier, Texture* aTexture);
-typedef Texture*	(*TEXTURES_GET)							(std::string aIdentifier);
-typedef void		(*TEXTURES_LOADFROMFILE)				(std::string aIdentifier, std::string aFilename, TEXTURES_RECEIVECALLBACK aCallback);
-typedef void		(*TEXTURES_LOADFROMRESOURCE)			(std::string aIdentifier, unsigned aResourceID, HMODULE aModule, TEXTURES_RECEIVECALLBACK aCallback);
+typedef void		(*TEXTURES_RECEIVECALLBACK)				(const char* aIdentifier, Texture* aTexture);
+typedef Texture*	(*TEXTURES_GET)							(const char* aIdentifier);
+typedef void		(*TEXTURES_LOADFROMFILE)				(const char* aIdentifier, const char* aFilename, TEXTURES_RECEIVECALLBACK aCallback);
+typedef void		(*TEXTURES_LOADFROMRESOURCE)			(const char* aIdentifier, unsigned aResourceID, HMODULE aModule, TEXTURES_RECEIVECALLBACK aCallback);
 
 typedef void		(*QUICKACCESS_SHORTCUTRENDERCALLBACK)	();
-typedef void		(*QUICKACCESS_ADDSHORTCUT)				(std::string aIdentifier, std::string aTextureIdentifier, std::string aTextureHoverIdentifier, std::string aKeybindIdentifier, std::string aTooltipText);
-typedef void		(*QUICKACCESS_REMOVESHORTCUT)			(std::string aIdentifier);
-typedef void		(*QUICKACCESS_ADDSIMPLE)				(std::string aIdentifier, QUICKACCESS_SHORTCUTRENDERCALLBACK aShortcutRenderCallback);
-typedef void		(*QUICKACCESS_REMOVESIMPLE)				(std::string aIdentifier);
+typedef void		(*QUICKACCESS_ADDSHORTCUT)				(const char* aIdentifier, const char* aTextureIdentifier, const char* aTextureHoverIdentifier, const char* aKeybindIdentifier, const char* aTooltipText);
+typedef void		(*QUICKACCESS_REMOVESHORTCUT)			(const char* aIdentifier);
+typedef void		(*QUICKACCESS_ADDSIMPLE)				(const char* aIdentifier, QUICKACCESS_SHORTCUTRENDERCALLBACK aShortcutRenderCallback);
+typedef void		(*QUICKACCESS_REMOVESIMPLE)				(const char* aIdentifier);
 
 struct AddonAPI
 {
+	/* Renderer */
 	IDXGISwapChain*				SwapChain;
 	ImGuiContext*				ImguiContext;
+	GUI_REGISTER				RegisterRender;
+	GUI_UNREGISTER				UnregisterRender;
 
 	/* Minhook */
 	MINHOOK_CREATE				CreateHook;
@@ -129,6 +141,8 @@ struct AddonAPI
 	/* Keybinds */
 	KEYBINDS_REGISTER			RegisterKeybind;
 	KEYBINDS_UNREGISTER			UnregisterKeybind;
+	KEYBINDS_REGISTERWNDPROC	RegisterWndProc;
+	KEYBINDS_UNREGISTERWNDPROC	UnregisterWndProc;
 
 	/* DataLink */
 	DATALINK_GETRESOURCE		GetResource;
@@ -180,27 +194,33 @@ struct NexusLinkData
 	ImFont*		FontUI;
 };
 
-typedef void		(*ADDON_LOAD)							(AddonAPI aHostApi);
-typedef void		(*ADDON_UNLOAD)							();
-typedef void		(*ADDON_RENDER)							();
-typedef bool		(*ADDON_WNDPROC)						(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+typedef void (*ADDON_LOAD)(AddonAPI aHostApi, void* mallocfn, void* freefn);
+typedef void (*ADDON_UNLOAD)();
+
+struct AddonVersion
+{
+	signed short	Major;
+	signed short	Minor;
+	signed short	Build;
+	signed short	Revision;
+};
 
 struct AddonDefinition
 {
-	signed int      Signature;      /* Raidcore Addon ID, set to random negative integer if not on Raidcore */
+	/* required */
+	signed int      Signature;      /* Raidcore Addon ID, set to random unqiue negative integer if not on Raidcore */
+	signed int		APIVersion;		/* Determines which AddonAPI struct revision the Loader will pass, use the NEXUS_API_VERSION define from Nexus.h */
 	const char*		Name;           /* Name of the addon as shown in the library */
-	const char*		Version;        /* Leave as `__DATE__ L" " __TIME__` to maintain consistency */
+	AddonVersion	Version;
 	const char*		Author;         /* Author of the addon */
 	const char*		Description;    /* Short description */
 	ADDON_LOAD      Load;           /* Pointer to Load Function of the addon */
 	ADDON_UNLOAD    Unload;         /* Pointer to Unload Function of the addon */
 	EAddonFlags     Flags;          /* Information about the addon */
 
-	ADDON_RENDER    Render;         /* Present callback to render imgui */
-	ADDON_WNDPROC   WndProc;        /* WndProc callback for custom implementations beyond keybinds, return true if processed by addon, false if passed through*/
-
+	/* update fallback */
 	EUpdateProvider Provider;       /* What platform is the the addon hosted on */
-	const char*		UpdateLink;     /* Link to the update resource */
+	const char* UpdateLink;			/* Link to the update resource */
 };
 
 #endif
