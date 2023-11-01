@@ -9,9 +9,21 @@
 
 #define NEXUS_API_VERSION 1
 
-typedef void (*ADDON_RENDER)(bool aIsUIVisible);
-typedef void (*GUI_REGISTER)(ADDON_RENDER aRenderCallback);
-typedef void (*GUI_UNREGISTER)(ADDON_RENDER aRenderCallback);
+enum class ERenderType
+{
+	PreRender,
+	Render,
+	PostRender,
+	OptionsRender
+};
+
+typedef void		(*GUI_RENDER)();
+typedef void		(*GUI_ADDRENDER)(ERenderType aRenderType, GUI_RENDER aRenderCallback);
+typedef void		(*GUI_REMRENDER)(GUI_RENDER aRenderCallback);
+
+typedef const char* (*PATHS_GETGAMEDIR)();
+typedef const char* (*PATHS_GETADDONDIR)(const char* aName);
+typedef const char* (*PATHS_GETCOMMONDIR)();
 
 // MinHook Error Codes.
 enum MH_STATUS
@@ -71,27 +83,28 @@ class ILogger
 		std::mutex		MessageMutex;
 };
 
-typedef void		(*LOGGER_LOGA)							(ELogLevel aLogLevel, const char* aFmt, ...);
+typedef void		(*LOGGER_LOGA)							(ELogLevel aLogLevel, const char* aStr);
 typedef void		(*LOGGER_ADDREM)						(ILogger* aLogger);
 
 typedef void		(*EVENTS_CONSUME)						(void* aEventArgs);
 typedef void		(*EVENTS_RAISE)							(const char* aEventName, void* aEventData);
 typedef void		(*EVENTS_SUBSCRIBE)						(const char* aEventName, EVENTS_CONSUME aConsumeEventCallback);
 
+typedef UINT		(*WNDPROC_CALLBACK)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+typedef void		(*WNDPROC_ADDREM)(WNDPROC_CALLBACK aWndProcCallback);
+
 struct Keybind
 {
-	WORD Key;
-	bool Alt;
-	bool Ctrl;
-	bool Shift;
+	unsigned short	Key;
+	bool			Alt;
+	bool			Ctrl;
+	bool			Shift;
 };
 
-typedef void (*KEYBINDS_PROCESS)(const char* aIdentifier);
-typedef void (*KEYBINDS_REGISTER)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, const char* aKeybind);
-typedef void (*KEYBINDS_UNREGISTER)(const char* aIdentifier);
-typedef bool (*ADDON_WNDPROC)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-typedef void (*KEYBINDS_REGISTERWNDPROC)(ADDON_WNDPROC aWndProcCallback);
-typedef void (*KEYBINDS_UNREGISTERWNDPROC)(ADDON_WNDPROC aWndProcCallback);
+typedef void		(*KEYBINDS_PROCESS)						(const char* aIdentifier);
+typedef void		(*KEYBINDS_REGISTERWITHSTRING)			(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, const char* aKeybind);
+typedef void		(*KEYBINDS_REGISTERWITHSTRUCT)			(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, Keybind aKeybind);
+typedef void		(*KEYBINDS_UNREGISTER)					(const char* aIdentifier);
 
 typedef void*		(*DATALINK_GETRESOURCE)					(const char* aIdentifier);
 typedef void*		(*DATALINK_SHARERESOURCE)				(const char* aIdentifier, size_t aResourceSize);
@@ -107,20 +120,27 @@ typedef void		(*TEXTURES_RECEIVECALLBACK)				(const char* aIdentifier, Texture* 
 typedef Texture*	(*TEXTURES_GET)							(const char* aIdentifier);
 typedef void		(*TEXTURES_LOADFROMFILE)				(const char* aIdentifier, const char* aFilename, TEXTURES_RECEIVECALLBACK aCallback);
 typedef void		(*TEXTURES_LOADFROMRESOURCE)			(const char* aIdentifier, unsigned aResourceID, HMODULE aModule, TEXTURES_RECEIVECALLBACK aCallback);
+typedef void		(*TEXTURES_LOADFROMURL)					(const char* aIdentifier, const char* aRemote, const char* aEndpoint, TEXTURES_RECEIVECALLBACK aCallback);
 
 typedef void		(*QUICKACCESS_SHORTCUTRENDERCALLBACK)	();
 typedef void		(*QUICKACCESS_ADDSHORTCUT)				(const char* aIdentifier, const char* aTextureIdentifier, const char* aTextureHoverIdentifier, const char* aKeybindIdentifier, const char* aTooltipText);
-typedef void		(*QUICKACCESS_REMOVESHORTCUT)			(const char* aIdentifier);
 typedef void		(*QUICKACCESS_ADDSIMPLE)				(const char* aIdentifier, QUICKACCESS_SHORTCUTRENDERCALLBACK aShortcutRenderCallback);
-typedef void		(*QUICKACCESS_REMOVESIMPLE)				(const char* aIdentifier);
+typedef void		(*QUICKACCESS_REMOVE)					(const char* aIdentifier);
 
 struct AddonAPI
 {
 	/* Renderer */
-	IDXGISwapChain*				SwapChain;
-	ImGuiContext*				ImguiContext;
-	GUI_REGISTER				RegisterRender;
-	GUI_UNREGISTER				UnregisterRender;
+	IDXGISwapChain* SwapChain;
+	ImGuiContext* ImguiContext;
+	void* ImguiMalloc;
+	void* ImguiFree;
+	GUI_ADDRENDER				RegisterRender;
+	GUI_REMRENDER				UnregisterRender;
+
+	/* Paths */
+	PATHS_GETGAMEDIR			GetGameDirectory;
+	PATHS_GETADDONDIR			GetAddonDirectory;
+	PATHS_GETCOMMONDIR			GetCommonDirectory;
 
 	/* Minhook */
 	MINHOOK_CREATE				CreateHook;
@@ -138,11 +158,14 @@ struct AddonAPI
 	EVENTS_SUBSCRIBE			SubscribeEvent;
 	EVENTS_SUBSCRIBE			UnsubscribeEvent;
 
+	/* WndProc */
+	WNDPROC_ADDREM				RegisterWndProc;
+	WNDPROC_ADDREM				UnregisterWndProc;
+
 	/* Keybinds */
-	KEYBINDS_REGISTER			RegisterKeybind;
+	KEYBINDS_REGISTERWITHSTRING	RegisterKeybindWithString;
+	KEYBINDS_REGISTERWITHSTRUCT	RegisterKeybindWithStruct;
 	KEYBINDS_UNREGISTER			UnregisterKeybind;
-	KEYBINDS_REGISTERWNDPROC	RegisterWndProc;
-	KEYBINDS_UNREGISTERWNDPROC	UnregisterWndProc;
 
 	/* DataLink */
 	DATALINK_GETRESOURCE		GetResource;
@@ -152,12 +175,13 @@ struct AddonAPI
 	TEXTURES_GET				GetTexture;
 	TEXTURES_LOADFROMFILE		LoadTextureFromFile;
 	TEXTURES_LOADFROMRESOURCE	LoadTextureFromResource;
+	TEXTURES_LOADFROMURL		LoadTextureFromURL;
 
 	/* Shortcuts */
 	QUICKACCESS_ADDSHORTCUT		AddShortcut;
-	QUICKACCESS_REMOVESHORTCUT  RemoveShortcut;
+	QUICKACCESS_REMOVE			RemoveShortcut;
 	QUICKACCESS_ADDSIMPLE		AddSimpleShortcut;
-	QUICKACCESS_REMOVESIMPLE	RemoveSimpleShortcut;
+	QUICKACCESS_REMOVE			RemoveSimpleShortcut;
 
 	/* API */
 		// GW2 API FUNCS
@@ -194,7 +218,7 @@ struct NexusLinkData
 	ImFont*		FontUI;
 };
 
-typedef void (*ADDON_LOAD)(AddonAPI aHostApi, void* mallocfn, void* freefn);
+typedef void (*ADDON_LOAD)(AddonAPI* aApi);
 typedef void (*ADDON_UNLOAD)();
 
 struct AddonVersion
