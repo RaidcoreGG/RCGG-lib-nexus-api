@@ -7,17 +7,21 @@
 
 #include "imgui/imgui.h"
 
+#ifndef __cplusplus 
+#include <stdbool.h>
+#endif
+
 // Your addon must use the same IMGUI Version 1.80
 #define IMGUI_VERSION_NUM 18000
 #define NEXUS_API_VERSION 1
 
-enum class ERenderType
+typedef enum ERenderType
 {
-	PreRender,
-	Render,
-	PostRender,
-	OptionsRender
-};
+	ERenderType_PreRender,
+	ERenderType_Render,
+	ERenderType_PostRender,
+	ERenderType_OptionsRender
+} ERenderType;
 
 typedef void (*GUI_RENDER) ();
 typedef void (*GUI_ADDRENDER) (ERenderType aRenderType, GUI_RENDER aRenderCallback);
@@ -27,7 +31,7 @@ typedef const char* (*PATHS_GETGAMEDIR)();
 typedef const char* (*PATHS_GETADDONDIR)(const char* aName);
 typedef const char* (*PATHS_GETCOMMONDIR)();
 
-enum class EMHStatus
+typedef enum EMHStatus
 {
 	MH_UNKNOWN = -1,
 	MH_OK = 0,
@@ -43,23 +47,23 @@ enum class EMHStatus
 	MH_ERROR_MEMORY_PROTECT,
 	MH_ERROR_MODULE_NOT_FOUND,
 	MH_ERROR_FUNCTION_NOT_FOUND
-};
+} EMHStatus;
 
 typedef EMHStatus (__stdcall* MINHOOK_CREATE)(LPVOID pTarget, LPVOID pDetour, LPVOID* ppOriginal);
 typedef EMHStatus (__stdcall* MINHOOK_REMOVE)(LPVOID pTarget);
 typedef EMHStatus (__stdcall* MINHOOK_ENABLE)(LPVOID pTarget);
 typedef EMHStatus (__stdcall* MINHOOK_DISABLE)(LPVOID pTarget);
 
-enum class ELogLevel : unsigned char
+typedef enum ELogLevel
 {
-	OFF         = 0,
-	CRITICAL    = 1,
-	WARNING     = 2,
-	INFO        = 3,
-	DEBUG       = 4,
-	TRACE       = 5,
-	ALL
-};
+	ELogLevel_OFF         = 0,
+	ELogLevel_CRITICAL    = 1,
+	ELogLevel_WARNING     = 2,
+	ELogLevel_INFO        = 3,
+	ELogLevel_DEBUG       = 4,
+	ELogLevel_TRACE       = 5,
+	ELogLevel_ALL
+} ELogLevel;
 
 typedef void (*LOGGER_LOGA)(ELogLevel aLogLevel, const char* aStr);
 
@@ -70,13 +74,13 @@ typedef void (*EVENTS_SUBSCRIBE)(const char* aIdentifier, EVENT_CONSUME aConsume
 typedef UINT (*WNDPROC_CALLBACK)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 typedef void (*WNDPROC_ADDREM)(WNDPROC_CALLBACK aWndProcCallback);
 
-struct Keybind
+typedef struct Keybind
 {
 	unsigned short	Key;
 	bool			Alt;
 	bool			Ctrl;
 	bool			Shift;
-};
+} Keybind;
 
 typedef void (*KEYBINDS_PROCESS)(const char* aIdentifier);
 typedef void (*KEYBINDS_REGISTERWITHSTRING)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, const char* aKeybind);
@@ -86,12 +90,12 @@ typedef void (*KEYBINDS_UNREGISTER)(const char* aIdentifier);
 typedef void* (*DATALINK_GETRESOURCE)(const char* aIdentifier);
 typedef void* (*DATALINK_SHARERESOURCE)(const char* aIdentifier, size_t aResourceSize);
 
-struct Texture
+typedef struct Texture
 {
 	unsigned Width;
 	unsigned Height;
 	ID3D11ShaderResourceView* Resource;
-};
+} Texture;
 
 typedef void (*TEXTURES_RECEIVECALLBACK)(const char* aIdentifier, Texture* aTexture);
 typedef Texture* (*TEXTURES_GET)(const char* aIdentifier);
@@ -103,7 +107,7 @@ typedef void (*QUICKACCESS_ADDSHORTCUT) (const char* aIdentifier, const char* aT
 typedef void (*QUICKACCESS_ADDSIMPLE) (const char* aIdentifier, GUI_RENDER aShortcutRenderCallback);
 typedef void (*QUICKACCESS_REMOVE) (const char* aIdentifier);
 
-struct NexusLinkData
+typedef struct NexusLinkData
 {
 	unsigned	Width;
 	unsigned	Height;
@@ -116,10 +120,10 @@ struct NexusLinkData
 	ImFont*		Font;
 	ImFont*		FontBig;
 	ImFont*		FontUI;
-};
+} NexusLinkData;
 
 // Revision 1
-struct AddonAPI
+typedef struct AddonAPI
 {
 	/* Renderer */
 	IDXGISwapChain*				SwapChain;
@@ -172,35 +176,35 @@ struct AddonAPI
 	QUICKACCESS_REMOVE			RemoveShortcut;
 	QUICKACCESS_ADDSIMPLE		AddSimpleShortcut;
 	QUICKACCESS_REMOVE			RemoveSimpleShortcut;
-};
+} AddonAPI;
 
 typedef void (*ADDON_LOAD) (AddonAPI* aAPI);
 typedef void (*ADDON_UNLOAD) ();
 
-struct AddonVersion
+typedef struct AddonVersion
 {
 	signed short	Major;
 	signed short	Minor;
 	signed short	Build;
 	signed short	Revision;
-};
+} AddonVersion;
 
-enum class EAddonFlags
+typedef enum EAddonFlags
 {
-	None = 0,
-	IsVolatile = 1,				/* is hooking functions or doing anything else that's volatile and game build dependant */
-	DisableHotloading = 2		/* prevents unloading at runtime, aka. will require a restart if updated, etc. */
-};
+	EAddonFlags_None = 0,
+	EAddonFlags_IsVolatile = 1,				/* is hooking functions or doing anything else that's volatile and game build dependant */
+	EAddonFlags_DisableHotloading = 2		/* prevents unloading at runtime, aka. will require a restart if updated, etc. */
+} EAddonFlags;
 
-enum class EUpdateProvider
+typedef enum EUpdateProvider
 {
-	None		= 0,	/* Does not support auto updating */
-	Raidcore	= 1,	/* Provider is Raidcore (via API) */
-	GitHub		= 2,	/* Provider is GitHub Releases */
-	Direct		= 3		/* Provider is direct file link */
-};
+	EUpdateProvider_None		= 0,	/* Does not support auto updating */
+	EUpdateProvider_Raidcore	= 1,	/* Provider is Raidcore (via API) */
+	EUpdateProvider_GitHub		= 2,	/* Provider is GitHub Releases */
+	EUpdateProvider_Direct		= 3		/* Provider is direct file link */
+} EUpdateProvider;
 
-struct AddonDefinition
+typedef struct AddonDefinition
 {
 	/* required */
 	signed int      Signature;      /* Raidcore Addon ID, set to random unqiue negative integer if not on Raidcore */
@@ -216,6 +220,6 @@ struct AddonDefinition
 	/* update fallback */
 	EUpdateProvider Provider;       /* What platform is the the addon hosted on */
 	const char*     UpdateLink;     /* Link to the update resource */
-};
+} AddonDefinition;
 
 #endif
