@@ -5,14 +5,14 @@
 #include <d3d11.h>
 #include <mutex>
 
+#if __has_include("imgui/imgui.h")
 #include "imgui/imgui.h"
+#endif
 
-#ifndef __cplusplus 
+#ifndef __cplusplus
 #include <stdbool.h>
 #endif
 
-// Your addon must use the same IMGUI Version 1.80
-#define IMGUI_VERSION_NUM 18000
 #define NEXUS_API_VERSION 1
 
 typedef enum ERenderType
@@ -117,9 +117,9 @@ typedef struct NexusLinkData
 	bool		IsCameraMoving;
 	bool		IsGameplay;
 
-	ImFont*		Font;
-	ImFont*		FontBig;
-	ImFont*		FontUI;
+	struct ImFont*		Font;
+	struct ImFont*		FontBig;
+	struct ImFont*		FontUI;
 } NexusLinkData;
 
 // Revision 1
@@ -127,7 +127,7 @@ typedef struct AddonAPI
 {
 	/* Renderer */
 	IDXGISwapChain*				SwapChain;
-	ImGuiContext*				ImguiContext;
+	struct ImGuiContext*				ImguiContext;
 	void*						ImguiMalloc;
 	void*						ImguiFree;
 	GUI_ADDRENDER				RegisterRender;
