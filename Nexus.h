@@ -2,7 +2,6 @@
 #define NEXUS_H
 
 #include <windows.h>
-#include <d3d11.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -181,7 +180,7 @@ typedef struct Texture
 {
 	unsigned Width;
 	unsigned Height;
-	ID3D11ShaderResourceView* Resource;
+	void* Resource; // ID3D11ShaderResourceView*
 } Texture;
 
 ///----------------------------------------------------------------------------------------------------
@@ -282,7 +281,7 @@ typedef struct NexusLinkData
 typedef struct AddonAPI
 {
 	/* Renderer */
-	IDXGISwapChain*						SwapChain;
+	void*								SwapChain; // IDXGISwapChain*
 	void*								ImguiContext; // ImGuiContext*
 	void*								ImguiMalloc;
 	void*								ImguiFree;
