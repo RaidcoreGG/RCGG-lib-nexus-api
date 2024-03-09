@@ -4,10 +4,6 @@
 #include <windows.h>
 #include <d3d11.h>
 
-#if __has_include("imgui/imgui.h")
-#include "imgui/imgui.h"
-#endif
-
 #ifndef __cplusplus
 #include <stdbool.h>
 #endif
@@ -22,12 +18,11 @@ typedef enum ERenderType
 	ERenderType_OptionsRender
 } ERenderType;
 
-
 ///----------------------------------------------------------------------------------------------------
 /// GUI_RENDER:
 /// 	Render callback signature.
 ///----------------------------------------------------------------------------------------------------
-typedef void (*GUI_RENDER) ();
+typedef void (*GUI_RENDER) (void);
 ///----------------------------------------------------------------------------------------------------
 /// GUI_ADDRENDER:
 /// 	Registers a render callback, ERenderType is either Pre, Present, Post or Options,
@@ -45,7 +40,7 @@ typedef void (*GUI_REMRENDER) (GUI_RENDER aRenderCallback);
 /// PATHS_GETGAMEDIR:
 /// 	Returns the path to the game directory. E.g. "C:\Program Files\Guild Wars 2\"
 ///----------------------------------------------------------------------------------------------------
-typedef const char* (*PATHS_GETGAMEDIR)();
+typedef const char* (*PATHS_GETGAMEDIR)(void);
 ///----------------------------------------------------------------------------------------------------
 /// PATHS_GETADDONDIR:
 /// 	Returns a path to /addons/{aName} for addons to use.
@@ -57,7 +52,7 @@ typedef const char* (*PATHS_GETADDONDIR)(const char* aName);
 ///		Returns the path to the common addon folder.
 /// 	Synonymous to PATHS_GETADDONDIR("common").
 ///----------------------------------------------------------------------------------------------------
-typedef const char* (*PATHS_GETCOMMONDIR)();
+typedef const char* (*PATHS_GETCOMMONDIR)(void);
 
 typedef enum EMHStatus
 {
@@ -279,16 +274,16 @@ typedef struct NexusLinkData
 	bool		IsCameraMoving;
 	bool		IsGameplay;
 
-	struct ImFont*		Font;
-	struct ImFont*		FontBig;
-	struct ImFont*		FontUI;
+	void*		Font;		// ImFont*
+	void*		FontBig;	// ImFont*
+	void*		FontUI;		// ImFont*
 } NexusLinkData;
 
-struct AddonAPI
+typedef struct AddonAPI
 {
 	/* Renderer */
 	IDXGISwapChain*						SwapChain;
-	ImGuiContext*						ImguiContext;
+	void*								ImguiContext; // ImGuiContext*
 	void*								ImguiMalloc;
 	void*								ImguiFree;
 	GUI_ADDRENDER						RegisterRender;
@@ -348,10 +343,10 @@ struct AddonAPI
 
 	LOCALIZATION_TRANSLATE				Translate;
 	LOCALIZATION_TRANSLATETO			TranslateTo;
-};
+} AddonAPI;
 
 typedef void (*ADDON_LOAD) (AddonAPI* aAPI);
-typedef void (*ADDON_UNLOAD) ();
+typedef void (*ADDON_UNLOAD) (void);
 
 typedef struct AddonVersion
 {
