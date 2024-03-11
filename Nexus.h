@@ -22,35 +22,11 @@ typedef enum ERenderType
 /// 	Render callback signature.
 ///----------------------------------------------------------------------------------------------------
 typedef void (*GUI_RENDER) (void);
-///----------------------------------------------------------------------------------------------------
-/// GUI_ADDRENDER:
-/// 	Registers a render callback, ERenderType is either Pre, Present, Post or Options,
-///		callback should be of void func().
-///----------------------------------------------------------------------------------------------------
 typedef void (*GUI_ADDRENDER) (ERenderType aRenderType, GUI_RENDER aRenderCallback);
-
-///----------------------------------------------------------------------------------------------------
-/// GUI_REMRENDER:
-/// 	Removes the registered render callback that is passed.
-///----------------------------------------------------------------------------------------------------
 typedef void (*GUI_REMRENDER) (GUI_RENDER aRenderCallback);
 
-///----------------------------------------------------------------------------------------------------
-/// PATHS_GETGAMEDIR:
-/// 	Returns the path to the game directory. E.g. "C:\Program Files\Guild Wars 2\"
-///----------------------------------------------------------------------------------------------------
 typedef const char* (*PATHS_GETGAMEDIR)(void);
-///----------------------------------------------------------------------------------------------------
-/// PATHS_GETADDONDIR:
-/// 	Returns a path to /addons/{aName} for addons to use.
-///		Passing nullptr or empty string "" returns /addons without trailing slash.
-///----------------------------------------------------------------------------------------------------
 typedef const char* (*PATHS_GETADDONDIR)(const char* aName);
-///----------------------------------------------------------------------------------------------------
-/// PATHS_GETCOMMONDIR:
-///		Returns the path to the common addon folder.
-/// 	Synonymous to PATHS_GETADDONDIR("common").
-///----------------------------------------------------------------------------------------------------
 typedef const char* (*PATHS_GETCOMMONDIR)(void);
 
 typedef enum EMHStatus
@@ -87,52 +63,25 @@ typedef enum ELogLevel
 	ELogLevel_ALL
 } ELogLevel;
 
-///----------------------------------------------------------------------------------------------------
-/// LOGGER_LOG2:
-/// 	Logs a message to the file and ingame window.
-///		Supports custom coloring for addon window messages like: <c=#FF0000>This text is Red</c>.
-///----------------------------------------------------------------------------------------------------
 typedef void (*LOGGER_LOG2)(ELogLevel aLogLevel, const char* aChannel, const char* aStr);
 
 ///----------------------------------------------------------------------------------------------------
 /// EVENT_CONSUME:
 /// 	Event consume callback signature.
+/// 	aEventArgs is payload and should be known to consumer.
 ///----------------------------------------------------------------------------------------------------
 typedef void (*EVENT_CONSUME)(void* aEventArgs);
-///----------------------------------------------------------------------------------------------------
-/// EVENTS_RAISE:
-/// 	Raises an event to all subscribing addons.
-///		aEventData is a pointer to the data you want to share or nullptr.
-///		Addons are responsible for knowing how to interpret this data.
-///----------------------------------------------------------------------------------------------------
 typedef void (*EVENTS_RAISE)(const char* aIdentifier, void* aEventData);
-///----------------------------------------------------------------------------------------------------
-/// EVENT_RAISENOTIFICATION:
-/// 	Raises an event without a payload.
-///		Synonymous with EVENTS_RAISE("EV_FOO", nullptr);
-///----------------------------------------------------------------------------------------------------
 typedef void (*EVENTS_RAISENOTIFICATION)(const char* aIdentifier);
-///----------------------------------------------------------------------------------------------------
-/// EVENTS_SUBSCRIBE:
-/// 	Registers/Deregisters an event callback. Signature is the same for both.
-///----------------------------------------------------------------------------------------------------
 typedef void (*EVENTS_SUBSCRIBE)(const char* aIdentifier, EVENT_CONSUME aConsumeEventCallback);
 
 ///----------------------------------------------------------------------------------------------------
 /// WNDPROC_CALLBACK:
 /// 	Slightly different WndProc signature.
-///		Return 0 if your addon handled it and you don't want it to be passed to the game.
+/// 	Return 0 if your addon handled it and you don't want it to be passed to the game.
 ///----------------------------------------------------------------------------------------------------
 typedef UINT (*WNDPROC_CALLBACK)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-///----------------------------------------------------------------------------------------------------
-/// WNDPROC_ADDREM:
-/// 	Registers/Deregisters a WndProc callback.
-///----------------------------------------------------------------------------------------------------
 typedef void (*WNDPROC_ADDREM)(WNDPROC_CALLBACK aWndProcCallback);
-///----------------------------------------------------------------------------------------------------
-/// WNDPROC_SENDTOGAME:
-/// 	Sends a WndProc to the game only and bypasses all other hooks.
-///----------------------------------------------------------------------------------------------------
 typedef LRESULT	(*WNDPROC_SENDTOGAME)(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 typedef struct Keybind
@@ -148,32 +97,11 @@ typedef struct Keybind
 /// 	KeybindHandler callback signature.
 ///----------------------------------------------------------------------------------------------------
 typedef void (*KEYBINDS_PROCESS)(const char* aIdentifier);
-///----------------------------------------------------------------------------------------------------
-/// KEYBINDS_REGISTERWITHSTRING:
-/// 	Registers a KeybindHandler callback for a given named keybind.
-///		aKeybind is the default if not yet defined. Use as "ALT+CTRL+SHIFT+Q", "ALT+SHIFT+T", etc.
-///----------------------------------------------------------------------------------------------------
 typedef void (*KEYBINDS_REGISTERWITHSTRING)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, const char* aKeybind);
-///----------------------------------------------------------------------------------------------------
-/// KEYBINDS_REGISTERWITHSTRUCT:
-/// 	Same as KEYBINDS_REGISTERWITHSTRING except you pass a Nexus Keybind struct as a default bind.
-///----------------------------------------------------------------------------------------------------
 typedef void (*KEYBINDS_REGISTERWITHSTRUCT)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, Keybind aKeybind);
-///----------------------------------------------------------------------------------------------------
-/// KEYBINDS_DEREGISTER:
-/// 	Deregisters a KeybindHandler callback.
-///----------------------------------------------------------------------------------------------------
 typedef void (*KEYBINDS_DEREGISTER)(const char* aIdentifier);
 
-///----------------------------------------------------------------------------------------------------
-/// DATALINK_GETRESOURCE:
-/// 	Returns a pointer to the requested resource or nullptr if not existing.
-///----------------------------------------------------------------------------------------------------
 typedef void* (*DATALINK_GETRESOURCE)(const char* aIdentifier);
-///----------------------------------------------------------------------------------------------------
-/// DATALINK_SHARERESOURCE:
-/// 	Allocates a shared resource of given size and returns a pointer to it for writing.
-///----------------------------------------------------------------------------------------------------
 typedef void* (*DATALINK_SHARERESOURCE)(const char* aIdentifier, size_t aResourceSize);
 
 typedef struct Texture
@@ -188,79 +116,21 @@ typedef struct Texture
 /// 	TextureReceiver callback signature.
 ///----------------------------------------------------------------------------------------------------
 typedef void		(*TEXTURES_RECEIVECALLBACK)(const char* aIdentifier, Texture* aTexture);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_GET:
-/// 	Returns a Texture* or nullptr if it doesn't exist.
-///----------------------------------------------------------------------------------------------------
 typedef Texture*	(*TEXTURES_GET)(const char* aIdentifier);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_GETORCREATEFROMFILE:
-/// 	Returns a Texture* or if it doesn't exist yet creates it from file.
-///----------------------------------------------------------------------------------------------------
 typedef Texture*	(*TEXTURES_GETORCREATEFROMFILE)(const char* aIdentifier, const char* aFilename);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_GETORCREATEFROMRESOURCE:
-/// 	Returns a Texture* or if it doesn't exist yet creates it from resource.
-///----------------------------------------------------------------------------------------------------
 typedef Texture*	(*TEXTURES_GETORCREATEFROMRESOURCE)(const char* aIdentifier, unsigned aResourceID, HMODULE aModule);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_GETORCREATEFROMURL:
-/// 	Returns a Texture* or if it doesn't exist yet creates it from URL.
-///----------------------------------------------------------------------------------------------------
 typedef Texture*	(*TEXTURES_GETORCREATEFROMURL)(const char* aIdentifier, const char* aRemote, const char* aEndpoint);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_GETORCREATEFROMMEMORY:
-/// 	Returns a Texture* or if it doesn't exist yet creates it from memory.
-///----------------------------------------------------------------------------------------------------
 typedef Texture*	(*TEXTURES_GETORCREATEFROMMEMORY)(const char* aIdentifier, void* aData, size_t aSize);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_LOADFROMFILE:
-/// 	Creates a texture from file and passes it to the TextureReceiver callback when finished.
-///----------------------------------------------------------------------------------------------------
 typedef void		(*TEXTURES_LOADFROMFILE)(const char* aIdentifier, const char* aFilename, TEXTURES_RECEIVECALLBACK aCallback);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_LOADFROMRESOURCE:
-/// 	Creates a texture from resource and passes it to the TextureReceiver callback when finished.
-///----------------------------------------------------------------------------------------------------
 typedef void		(*TEXTURES_LOADFROMRESOURCE)(const char* aIdentifier, unsigned aResourceID, HMODULE aModule, TEXTURES_RECEIVECALLBACK aCallback);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_LOADFROMURL:
-/// 	Creates a texture from URL and passes it to the TextureReceiver callback when finished.
-///----------------------------------------------------------------------------------------------------
 typedef void		(*TEXTURES_LOADFROMURL)(const char* aIdentifier, const char* aRemote, const char* aEndpoint, TEXTURES_RECEIVECALLBACK aCallback);
-///----------------------------------------------------------------------------------------------------
-/// TEXTURES_LOADFROMMEMORY:
-/// 	Creates a texture from memory and passes it to the TextureReceiver callback when finished.
-///----------------------------------------------------------------------------------------------------
 typedef void		(*TEXTURES_LOADFROMMEMORY)(const char* aIdentifier, void* aData, size_t aSize, TEXTURES_RECEIVECALLBACK aCallback);
 
-///----------------------------------------------------------------------------------------------------
-/// QUICKACCESS_ADDSHORTCUT:
-/// 	Adds a shortcut icon to the QuickAccess with given texture identifiers.
-///		When clicked aKeybindIdentifier will be invoked.
-///----------------------------------------------------------------------------------------------------
 typedef void (*QUICKACCESS_ADDSHORTCUT)	(const char* aIdentifier, const char* aTextureIdentifier, const char* aTextureHoverIdentifier, const char* aKeybindIdentifier, const char* aTooltipText);
-///----------------------------------------------------------------------------------------------------
-/// QUICKACCESS_ADDSIMPLE:
-/// 	Appends ImGui callback when right-clicking the Nexus icon.
-///----------------------------------------------------------------------------------------------------
 typedef void (*QUICKACCESS_ADDSIMPLE)	(const char* aIdentifier, GUI_RENDER aShortcutRenderCallback);
-///----------------------------------------------------------------------------------------------------
-/// QUICKACCESS_GENERIC:
-/// 	Generic function signature for deregistering shortcuts.
-///		This signature is also used to send a notification icon to a given shortcut.
-///----------------------------------------------------------------------------------------------------
 typedef void (*QUICKACCESS_GENERIC)		(const char* aIdentifier);
 
-///----------------------------------------------------------------------------------------------------
-/// LOCALIZATION_TRANSLATE:
-/// 	Translates aIdentifier into current active language or returns aIdentifier if not available.
-///----------------------------------------------------------------------------------------------------
 typedef const char* (*LOCALIZATION_TRANSLATE)(const char* aIdentifier);
-///----------------------------------------------------------------------------------------------------
-/// LOCALIZATION_TRANSLATETO:
-/// 	Same as LOCALIZATION_TRANSLATE except you can pass which language you want to translate to.
-///----------------------------------------------------------------------------------------------------
 typedef const char* (*LOCALIZATION_TRANSLATETO)(const char* aIdentifier, const char* aLanguageIdentifier);
 
 typedef struct NexusLinkData
@@ -285,12 +155,35 @@ typedef struct AddonAPI
 	void*								ImguiContext; // ImGuiContext*
 	void*								ImguiMalloc;
 	void*								ImguiFree;
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterRender:
+	/// 	Registers a render callback, ERenderType is either Pre, Present, Post or Options,
+	/// 	callback should be of void func().
+	///----------------------------------------------------------------------------------------------------
 	GUI_ADDRENDER						RegisterRender;
+	///----------------------------------------------------------------------------------------------------
+	/// DeregisterRender:
+	/// 	Removes the registered render callback that is passed.
+	///----------------------------------------------------------------------------------------------------
 	GUI_REMRENDER						DeregisterRender;
 
 	/* Paths */
+	///----------------------------------------------------------------------------------------------------
+	/// GetGameDirectory:
+	/// 	Returns the path to the game directory. E.g. "C:\Program Files\Guild Wars 2\"
+	///----------------------------------------------------------------------------------------------------
 	PATHS_GETGAMEDIR					GetGameDirectory;
+	///----------------------------------------------------------------------------------------------------
+	/// GetAddonDirectory:
+	/// 	Returns a path to /addons/{aName} for addons to use.
+	/// 	Passing nullptr or empty string "" returns /addons without trailing slash.
+	///----------------------------------------------------------------------------------------------------
 	PATHS_GETADDONDIR					GetAddonDirectory;
+	///----------------------------------------------------------------------------------------------------
+	/// GetCommonDirectory:
+	/// 	Returns the path to the common addon folder.
+	/// 	Synonymous to PATHS_GETADDONDIR("common").
+	///----------------------------------------------------------------------------------------------------
 	PATHS_GETCOMMONDIR					GetCommonDirectory;
 
 	/* Minhook */
@@ -300,47 +193,169 @@ typedef struct AddonAPI
 	MINHOOK_DISABLE						DisableHook;
 
 	/* Logging */
+	///----------------------------------------------------------------------------------------------------
+	/// Log:
+	/// 	Logs a message to the file and ingame window.
+	/// 	Supports custom coloring for addon window messages like: <c=#FF0000>This text is Red</c>.
+	///----------------------------------------------------------------------------------------------------
 	LOGGER_LOG2							Log;
 
 	/* Events */
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseEvent:
+	/// 	Raises an event to all subscribing addons.
+	/// 	aEventData is a pointer to the data you want to share or nullptr.
+	/// 	Addons are responsible for knowing how to interpret this data.
+	///----------------------------------------------------------------------------------------------------
 	EVENTS_RAISE						RaiseEvent;
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseEventNotification:
+	/// 	Raises an event without a payload.
+	/// 	Synonymous with RaiseEvent("EV_FOO", nullptr);
+	///----------------------------------------------------------------------------------------------------
 	EVENTS_RAISENOTIFICATION			RaiseEventNotification;
+	///----------------------------------------------------------------------------------------------------
+	/// SubscribeEvent:
+	/// 	Registers an event callback.
+	///----------------------------------------------------------------------------------------------------
 	EVENTS_SUBSCRIBE					SubscribeEvent;
+	///----------------------------------------------------------------------------------------------------
+	/// UnsubscribeEvent:
+	/// 	Deregisters an event callback.
+	///----------------------------------------------------------------------------------------------------
 	EVENTS_SUBSCRIBE					UnsubscribeEvent;
 
 	/* WndProc */
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterWndProc:
+	/// 	Registers/Deregisters a WndProc callback.
+	///----------------------------------------------------------------------------------------------------
 	WNDPROC_ADDREM						RegisterWndProc;
+	///----------------------------------------------------------------------------------------------------
+	/// DeregisterWndProc:
+	/// 	Registers/Deregisters a WndProc callback.
+	///----------------------------------------------------------------------------------------------------
 	WNDPROC_ADDREM						DeregisterWndProc;
+	///----------------------------------------------------------------------------------------------------
+	/// SendWndProcToGameOnly:
+	/// 	Sends a WndProc to the game only and bypasses all other hooks.
+	///----------------------------------------------------------------------------------------------------
 	WNDPROC_SENDTOGAME					SendWndProcToGameOnly;
 
 	/* Keybinds */
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterKeybindWithString:
+	/// 	Registers a KeybindHandler callback for a given named keybind.
+	/// 	aKeybind is the default if not yet defined. Use as "ALT+CTRL+SHIFT+Q", "ALT+SHIFT+T", etc.
+	///----------------------------------------------------------------------------------------------------
 	KEYBINDS_REGISTERWITHSTRING			RegisterKeybindWithString;
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterKeybindWithStruct:
+	/// 	Same as KEYBINDS_REGISTERWITHSTRING except you pass a Nexus Keybind struct as a default bind.
+	///----------------------------------------------------------------------------------------------------
 	KEYBINDS_REGISTERWITHSTRUCT			RegisterKeybindWithStruct;
+	///----------------------------------------------------------------------------------------------------
+	/// DeregisterKeybind:
+	/// 	Deregisters a KeybindHandler callback.
+	///----------------------------------------------------------------------------------------------------
 	KEYBINDS_DEREGISTER					DeregisterKeybind;
 
 	/* DataLink */
+	///----------------------------------------------------------------------------------------------------
+	/// GetResource:
+	/// 	Returns a pointer to the requested resource or nullptr if not existing.
+	///----------------------------------------------------------------------------------------------------
 	DATALINK_GETRESOURCE				GetResource;
+	///----------------------------------------------------------------------------------------------------
+	/// ShareResource:
+	/// 	Allocates a shared resource of given size and returns a pointer to it for writing.
+	///----------------------------------------------------------------------------------------------------
 	DATALINK_SHARERESOURCE				ShareResource;
 
 	/* Textures */
+	///----------------------------------------------------------------------------------------------------
+	/// GetTexture:
+	/// 	Returns a Texture* or nullptr if it doesn't exist.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_GET						GetTexture;
+	///----------------------------------------------------------------------------------------------------
+	/// GetTextureOrCreateFromFile:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from file.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_GETORCREATEFROMFILE		GetTextureOrCreateFromFile;
+	///----------------------------------------------------------------------------------------------------
+	/// GetTextureOrCreateFromResource:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from resource.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_GETORCREATEFROMRESOURCE	GetTextureOrCreateFromResource;
+	///----------------------------------------------------------------------------------------------------
+	/// GetTextureOrCreateFromURL:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from URL.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_GETORCREATEFROMURL			GetTextureOrCreateFromURL;
+	///----------------------------------------------------------------------------------------------------
+	/// GetTextureOrCreateFromMemory:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from memory.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_GETORCREATEFROMMEMORY		GetTextureOrCreateFromMemory;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadTextureFromFile:
+	/// 	Creates a texture from file and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_LOADFROMFILE				LoadTextureFromFile;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadTextureFromResource:
+	/// 	Creates a texture from resource and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_LOADFROMRESOURCE			LoadTextureFromResource;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadTextureFromURL:
+	/// 	Creates a texture from URL and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_LOADFROMURL				LoadTextureFromURL;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadTextureFromMemory:
+	/// 	Creates a texture from memory and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
 	TEXTURES_LOADFROMMEMORY				LoadTextureFromMemory;
 
 	/* Shortcuts */
+	///----------------------------------------------------------------------------------------------------
+	/// AddShortcut:
+	/// 	Adds a shortcut icon to the QuickAccess with given texture identifiers.
+	/// 	When clicked aKeybindIdentifier will be invoked.
+	///----------------------------------------------------------------------------------------------------
 	QUICKACCESS_ADDSHORTCUT				AddShortcut;
+	///----------------------------------------------------------------------------------------------------
+	/// RemoveShortcut:
+	/// 	Removes a shortcut with the given identifier from Quick Access.
+	///----------------------------------------------------------------------------------------------------
 	QUICKACCESS_GENERIC					RemoveShortcut;
+	///----------------------------------------------------------------------------------------------------
+	/// NotifyShortcut:
+	/// 	Sends a notification icon to the given shortcut.
+	///----------------------------------------------------------------------------------------------------
 	QUICKACCESS_GENERIC					NotifyShortcut;
+	///----------------------------------------------------------------------------------------------------
+	/// AddSimpleShortcut:
+	/// 	Appends ImGui callback when right-clicking the Nexus icon.
+	///----------------------------------------------------------------------------------------------------
 	QUICKACCESS_ADDSIMPLE				AddSimpleShortcut;
+	///----------------------------------------------------------------------------------------------------
+	/// RemoveSimpleShortcut:
+	/// 	Removes a simple shortcut with the given identifier from Quick Access.
+	///----------------------------------------------------------------------------------------------------
 	QUICKACCESS_GENERIC					RemoveSimpleShortcut;
 
+	///----------------------------------------------------------------------------------------------------
+	/// Translate:
+	/// 	Translates aIdentifier into current active language or returns aIdentifier if not available.
+	///----------------------------------------------------------------------------------------------------
 	LOCALIZATION_TRANSLATE				Translate;
+	///----------------------------------------------------------------------------------------------------
+	/// TranslateTo:
+	/// 	Same as Translate except you can pass which language you want to translate to.
+	///----------------------------------------------------------------------------------------------------
 	LOCALIZATION_TRANSLATETO			TranslateTo;
 } AddonAPI;
 
