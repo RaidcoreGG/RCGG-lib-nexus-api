@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #endif
 
-#define NEXUS_API_VERSION 2
+#define NEXUS_API_VERSION 3
 
 typedef enum ERenderType
 {
@@ -65,6 +65,8 @@ typedef enum ELogLevel
 
 typedef void (*LOGGER_LOG2)(ELogLevel aLogLevel, const char* aChannel, const char* aStr);
 
+typedef void (*ALERTS_NOTIFY)(const char* aMessage);
+
 ///----------------------------------------------------------------------------------------------------
 /// EVENT_CONSUME:
 /// 	Event consume callback signature.
@@ -73,6 +75,8 @@ typedef void (*LOGGER_LOG2)(ELogLevel aLogLevel, const char* aChannel, const cha
 typedef void (*EVENT_CONSUME)(void* aEventArgs);
 typedef void (*EVENTS_RAISE)(const char* aIdentifier, void* aEventData);
 typedef void (*EVENTS_RAISENOTIFICATION)(const char* aIdentifier);
+typedef void (*EVENTS_RAISE_TARGETED)(signed int aSignature, const char* aIdentifier, void* aEventData);
+typedef void (*EVENTS_RAISENOTIFICATION_TARGETED)(signed int aSignature, const char* aIdentifier);
 typedef void (*EVENTS_SUBSCRIBE)(const char* aIdentifier, EVENT_CONSUME aConsumeEventCallback);
 
 ///----------------------------------------------------------------------------------------------------
@@ -199,6 +203,13 @@ typedef struct AddonAPI
 	/// 	Supports custom coloring for addon window messages like: <c=#FF0000>This text is Red</c>.
 	///----------------------------------------------------------------------------------------------------
 	LOGGER_LOG2							Log;
+	
+	/* GUI Alerts */
+	///----------------------------------------------------------------------------------------------------
+	/// SendAlert:
+	/// 	Sends a text alert to the user visible for a short amount of time.
+	///----------------------------------------------------------------------------------------------------
+	ALERTS_NOTIFY						SendAlert;
 
 	/* Events */
 	///----------------------------------------------------------------------------------------------------
@@ -214,6 +225,16 @@ typedef struct AddonAPI
 	/// 	Synonymous with RaiseEvent("EV_FOO", nullptr);
 	///----------------------------------------------------------------------------------------------------
 	EVENTS_RAISENOTIFICATION			RaiseEventNotification;
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseEventTargeted:
+	/// 	Raises an event targeted at a specific subscriber.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_RAISE_TARGETED				RaiseEventTargeted;
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseEventNotificationTargeted:
+	/// 	Raises a notification (event without payload) targeted at a specific subscriber.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_RAISENOTIFICATION_TARGETED	RaiseEventNotificationTargeted;
 	///----------------------------------------------------------------------------------------------------
 	/// SubscribeEvent:
 	/// 	Registers an event callback.
