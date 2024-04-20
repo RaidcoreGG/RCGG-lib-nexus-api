@@ -395,7 +395,8 @@ typedef enum EAddonFlags
 {
 	EAddonFlags_None = 0,
 	EAddonFlags_IsVolatile = 1,				/* is hooking functions or doing anything else that's volatile and game build dependant */
-	EAddonFlags_DisableHotloading = 2		/* prevents unloading at runtime, aka. will require a restart if updated, etc. */
+	EAddonFlags_DisableHotloading = 2,			/* prevents unloading at runtime, aka. will require a restart if updated, etc. */
+	EAddonFlags_OnlyLoadDuringGameLaunchSequence = 4	/* prevents loading the addon later than the initial character select */
 } EAddonFlags;
 
 typedef enum EUpdateProvider
