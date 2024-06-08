@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #endif
 
-#define NEXUS_API_VERSION 3
+#define NEXUS_API_VERSION 4
 
 typedef enum ERenderType
 {
@@ -24,6 +24,8 @@ typedef enum ERenderType
 typedef void (*GUI_RENDER) (void);
 typedef void (*GUI_ADDRENDER) (ERenderType aRenderType, GUI_RENDER aRenderCallback);
 typedef void (*GUI_REMRENDER) (GUI_RENDER aRenderCallback);
+
+typedef void (*UPDATER_REQUESTUPDATE)(signed int aSignature, const char* aUpdateURL);
 
 typedef const char* (*PATHS_GETGAMEDIR)(void);
 typedef const char* (*PATHS_GETADDONDIR)(const char* aName);
@@ -99,10 +101,11 @@ typedef struct Keybind
 ///----------------------------------------------------------------------------------------------------
 /// KEYBINDS_PROCESS:
 /// 	KeybindHandler callback signature.
+///		aIsRelease will be true if the keybind is released.
 ///----------------------------------------------------------------------------------------------------
-typedef void (*KEYBINDS_PROCESS)(const char* aIdentifier);
-typedef void (*KEYBINDS_REGISTERWITHSTRING)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, const char* aKeybind);
-typedef void (*KEYBINDS_REGISTERWITHSTRUCT)(const char* aIdentifier, KEYBINDS_PROCESS aKeybindHandler, Keybind aKeybind);
+typedef void (*KEYBINDS_PROCESS2)(const char* aIdentifier, bool aIsRelease);
+typedef void (*KEYBINDS_REGISTERWITHSTRING2)(const char* aIdentifier, KEYBINDS_PROCESS2 aKeybindHandler, const char* aKeybind);
+typedef void (*KEYBINDS_REGISTERWITHSTRUCT2)(const char* aIdentifier, KEYBINDS_PROCESS2 aKeybindHandler, Keybind aKeybind);
 typedef void (*KEYBINDS_DEREGISTER)(const char* aIdentifier);
 
 typedef void* (*DATALINK_GETRESOURCE)(const char* aIdentifier);
@@ -136,6 +139,20 @@ typedef void (*QUICKACCESS_GENERIC)		(const char* aIdentifier);
 
 typedef const char* (*LOCALIZATION_TRANSLATE)(const char* aIdentifier);
 typedef const char* (*LOCALIZATION_TRANSLATETO)(const char* aIdentifier, const char* aLanguageIdentifier);
+///----------------------------------------------------------------------------------------------------
+/// FONTS_RECEIVECALLBACK:
+/// 	FontReceiver callback signature.
+/// 	aFont = ImFont*
+///----------------------------------------------------------------------------------------------------
+typedef void (*FONTS_RECEIVECALLBACK)(const char* aIdentifier, void* aFont);
+///----------------------------------------------------------------------------------------------------
+/// FONTS_GETRELEASE:
+/// 	Signature to get and release fonts.
+///----------------------------------------------------------------------------------------------------
+typedef void (*FONTS_GETRELEASE)(const char* aIdentifier, FONTS_RECEIVECALLBACK aCallback);
+typedef void (*FONTS_ADDFROMFILE)(const char* aIdentifier, float aFontSize, const char* aFilename, FONTS_RECEIVECALLBACK aCallback, void* aConfig);
+typedef void (*FONTS_ADDFROMRESOURCE)(const char* aIdentifier, float aFontSize, unsigned aResourceID, HMODULE aModule, FONTS_RECEIVECALLBACK aCallback, void* aConfig);
+typedef void (*FONTS_ADDFROMMEMORY)(const char* aIdentifier, float aFontSize, void* aData, size_t aSize, FONTS_RECEIVECALLBACK aCallback, void* aConfig);
 
 typedef struct NexusLinkData
 {
@@ -170,6 +187,15 @@ typedef struct AddonAPI
 	/// 	Removes the registered render callback that is passed.
 	///----------------------------------------------------------------------------------------------------
 	GUI_REMRENDER						DeregisterRender;
+
+	/* Updater */
+	///----------------------------------------------------------------------------------------------------
+	/// UpdateSelf:
+	/// 	Downloads the addon available at remote without checking its version.
+	/// 	The addon already did that.
+	/// 	I hope.
+	///----------------------------------------------------------------------------------------------------
+	UPDATER_REQUESTUPDATE				RequestUpdate;
 
 	/* Paths */
 	///----------------------------------------------------------------------------------------------------
@@ -269,12 +295,12 @@ typedef struct AddonAPI
 	/// 	Registers a KeybindHandler callback for a given named keybind.
 	/// 	aKeybind is the default if not yet defined. Use as "ALT+CTRL+SHIFT+Q", "ALT+SHIFT+T", etc.
 	///----------------------------------------------------------------------------------------------------
-	KEYBINDS_REGISTERWITHSTRING			RegisterKeybindWithString;
+	KEYBINDS_REGISTERWITHSTRING2		RegisterKeybindWithString;
 	///----------------------------------------------------------------------------------------------------
 	/// RegisterKeybindWithStruct:
 	/// 	Same as KEYBINDS_REGISTERWITHSTRING except you pass a Nexus Keybind struct as a default bind.
 	///----------------------------------------------------------------------------------------------------
-	KEYBINDS_REGISTERWITHSTRUCT			RegisterKeybindWithStruct;
+	KEYBINDS_REGISTERWITHSTRUCT2		RegisterKeybindWithStruct;
 	///----------------------------------------------------------------------------------------------------
 	/// DeregisterKeybind:
 	/// 	Deregisters a KeybindHandler callback.
@@ -368,6 +394,7 @@ typedef struct AddonAPI
 	///----------------------------------------------------------------------------------------------------
 	QUICKACCESS_GENERIC					RemoveSimpleShortcut;
 
+	/* Translation */
 	///----------------------------------------------------------------------------------------------------
 	/// Translate:
 	/// 	Translates aIdentifier into current active language or returns aIdentifier if not available.
@@ -378,6 +405,33 @@ typedef struct AddonAPI
 	/// 	Same as Translate except you can pass which language you want to translate to.
 	///----------------------------------------------------------------------------------------------------
 	LOCALIZATION_TRANSLATETO			TranslateTo;
+
+	/* Fonts */
+	///----------------------------------------------------------------------------------------------------
+	/// GetFont:
+	/// 	Requests a font to be sent to the given callback/receiver.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_GETRELEASE					GetFont;
+	///----------------------------------------------------------------------------------------------------
+	/// ReleaseFont:
+	/// 	Releases a callback/receiver from a specific font.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_GETRELEASE					ReleaseFont;
+	///----------------------------------------------------------------------------------------------------
+	/// AddFontFromFile:
+	/// 	Adds a font from disk and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_ADDFROMFILE					AddFontFromFile;
+	///----------------------------------------------------------------------------------------------------
+	/// AddFontFromResource:
+	/// 	Adds a font from an embedded resource and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_ADDFROMRESOURCE				AddFontFromResource;
+	///----------------------------------------------------------------------------------------------------
+	/// AddFontFromMemory:
+	/// 	Adds a font from memory and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_ADDFROMMEMORY					AddFontFromMemory;
 } AddonAPI;
 
 typedef void (*ADDON_LOAD) (AddonAPI* aAPI);
