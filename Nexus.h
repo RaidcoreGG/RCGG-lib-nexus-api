@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #endif
 
-#define NEXUS_API_VERSION 4
+#define NEXUS_API_VERSION 5
 
 typedef enum ERenderType
 {
@@ -107,6 +107,7 @@ typedef void (*KEYBINDS_PROCESS2)(const char* aIdentifier, bool aIsRelease);
 typedef void (*KEYBINDS_REGISTERWITHSTRING2)(const char* aIdentifier, KEYBINDS_PROCESS2 aKeybindHandler, const char* aKeybind);
 typedef void (*KEYBINDS_REGISTERWITHSTRUCT2)(const char* aIdentifier, KEYBINDS_PROCESS2 aKeybindHandler, Keybind aKeybind);
 typedef void (*KEYBINDS_DEREGISTER)(const char* aIdentifier);
+typedef void (*KEYBINDS_INVOKE)(const char* aIdentifier, bool aIsRelease);
 
 typedef void* (*DATALINK_GETRESOURCE)(const char* aIdentifier);
 typedef void* (*DATALINK_SHARERESOURCE)(const char* aIdentifier, size_t aResourceSize);
@@ -139,6 +140,8 @@ typedef void (*QUICKACCESS_GENERIC)		(const char* aIdentifier);
 
 typedef const char* (*LOCALIZATION_TRANSLATE)(const char* aIdentifier);
 typedef const char* (*LOCALIZATION_TRANSLATETO)(const char* aIdentifier, const char* aLanguageIdentifier);
+typedef void (*LOCALIZATION_SET)(const char* aIdentifier, const char* aLanguageIdentifier, const char* aString);
+
 ///----------------------------------------------------------------------------------------------------
 /// FONTS_RECEIVECALLBACK:
 /// 	FontReceiver callback signature.
@@ -291,6 +294,11 @@ typedef struct AddonAPI
 
 	/* Keybinds */
 	///----------------------------------------------------------------------------------------------------
+	/// InvokeKeybind:
+	/// 	Trigger a keybind programmatically.
+	///----------------------------------------------------------------------------------------------------
+	KEYBINDS_INVOKE						InvokeKeybind;
+	///----------------------------------------------------------------------------------------------------
 	/// RegisterKeybindWithString:
 	/// 	Registers a KeybindHandler callback for a given named keybind.
 	/// 	aKeybind is the default if not yet defined. Use as "ALT+CTRL+SHIFT+Q", "ALT+SHIFT+T", etc.
@@ -405,6 +413,11 @@ typedef struct AddonAPI
 	/// 	Same as Translate except you can pass which language you want to translate to.
 	///----------------------------------------------------------------------------------------------------
 	LOCALIZATION_TRANSLATETO			TranslateTo;
+	///----------------------------------------------------------------------------------------------------
+	/// SetTranslatedString:
+	/// 	Set a translated string at runtime.
+	///----------------------------------------------------------------------------------------------------
+	LOCALIZATION_SET					SetTranslatedString;
 
 	/* Fonts */
 	///----------------------------------------------------------------------------------------------------
@@ -458,7 +471,8 @@ typedef enum EUpdateProvider
 	EUpdateProvider_None		= 0,	/* Does not support auto updating */
 	EUpdateProvider_Raidcore	= 1,	/* Provider is Raidcore (via API) */
 	EUpdateProvider_GitHub		= 2,	/* Provider is GitHub Releases */
-	EUpdateProvider_Direct		= 3		/* Provider is direct file link */
+	EUpdateProvider_Direct		= 3,		/* Provider is direct file link */
+	EUpdateProvider_Self		= 4		/* Provider is self check, addon has to request manually and version will not be verified */
 } EUpdateProvider;
 
 typedef struct AddonDefinition
