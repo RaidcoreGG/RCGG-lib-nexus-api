@@ -277,6 +277,7 @@ typedef enum EGameBinds
 	EGameBinds_MasteryAccess03 = 206, // Jade Bot Waypoint
 	EGameBinds_MasteryAccess04 = 207, // Rift Scan
 	EGameBinds_MasteryAccess05 = 208, // Skyscale
+	EGameBinds_MasteryAccess06 = 211, // Homestead Doorway
 
 	// Miscellaneous Binds
 	EGameBinds_MiscAoELoot = 74,
@@ -287,6 +288,7 @@ typedef enum EGameBinds
 	EGameBinds_MiscToggleLanguage = 69,
 	EGameBinds_MiscTogglePetCombat = 76,
 	EGameBinds_MiscToggleFullScreen = 160,
+	EGameBinds_MiscToggleDecorationMode = 210, // DecorateMode
 
 	// Toys/Novelties
 	EGameBinds_ToyUseDefault = 162,
