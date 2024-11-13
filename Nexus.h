@@ -400,7 +400,7 @@ typedef struct AddonAPI
 	void* ImguiMalloc;
 	void* ImguiFree;
 
-	struct RendererVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Register:
@@ -413,8 +413,7 @@ typedef struct AddonAPI
 		/// 	Removes the registered render callback that is passed.
 		///----------------------------------------------------------------------------------------------------
 		GUI_REMRENDER						Deregister;
-	};
-	RendererVT								Renderer;
+	}									Renderer;
 
 	///----------------------------------------------------------------------------------------------------
 	/// RequestUpdate:
@@ -428,7 +427,7 @@ typedef struct AddonAPI
 	LOGGER_LOG2								Log;
 
 	/* User Interface */
-	struct UIVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// SendAlert:
@@ -445,29 +444,26 @@ typedef struct AddonAPI
 		/// 	Deregisters a window name to listen to on escape.
 		///----------------------------------------------------------------------------------------------------
 		GUI_DEREGISTERCLOSEONESCAPE			DeregisterCloseOnEscape;
-	};
-	UIVT									UI;
+	}									UI;
 
 	/* Paths */
-	struct PathsVT
+	struct
 	{
 		PATHS_GETGAMEDIR					GetGameDirectory;
 		PATHS_GETADDONDIR					GetAddonDirectory;
 		PATHS_GETCOMMONDIR					GetCommonDirectory;
-	};
-	PathsVT									Paths;
+	}									Paths;
 
 	/* Minhook */
-	struct MinHookVT
+	struct
 	{
 		MINHOOK_CREATE						Create;
 		MINHOOK_REMOVE						Remove;
 		MINHOOK_ENABLE						Enable;
 		MINHOOK_DISABLE						Disable;
-	};
-	MinHookVT								MinHook;
+	}									MinHook;
 
-	struct EventsVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Raise:
@@ -502,11 +498,10 @@ typedef struct AddonAPI
 		/// 	Deregisters an event callback.
 		///----------------------------------------------------------------------------------------------------
 		EVENTS_SUBSCRIBE					Unsubscribe;
-	};
-	EventsVT								Events;
+	}									Events;
 
 	/* WndProc */
-	struct WndProcVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Register:
@@ -523,11 +518,10 @@ typedef struct AddonAPI
 		/// 	Sends a WndProc to the game only and bypasses all other hooks.
 		///----------------------------------------------------------------------------------------------------
 		WNDPROC_SENDTOGAME					SendToGameOnly;
-	};
-	WndProcVT								WndProc;
+	}									WndProc;
 
 	/* InputBinds */
-	struct InputBindsVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Invoke:
@@ -550,11 +544,10 @@ typedef struct AddonAPI
 		/// 	Deregisters a KeybindHandler callback.
 		///----------------------------------------------------------------------------------------------------
 		KEYBINDS_DEREGISTER					Deregister;
-	};
-	InputBindsVT							InputBinds;
+	}									InputBinds;
 
 	/* GameBinds */
-	struct GameBindsVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Deregister:
@@ -586,11 +579,10 @@ typedef struct AddonAPI
 		/// 	Returns if a given game bind is set.
 		///----------------------------------------------------------------------------------------------------
 		GAMEBINDS_ISBOUND					IsBound;
-	};
-	GameBindsVT								GameBinds;
+	}									GameBinds;
 
 	/* DataLink */
-	struct DataLinkVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Get:
@@ -602,11 +594,10 @@ typedef struct AddonAPI
 		/// 	Allocates a shared resource of given size and returns a pointer to it for writing.
 		///----------------------------------------------------------------------------------------------------
 		DATALINK_SHARERESOURCE				Share;
-	};
-	DataLinkVT								DataLink;
+	}									DataLink;
 
 	/* Textures */
-	struct TexturesVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Get:
@@ -653,11 +644,10 @@ typedef struct AddonAPI
 		/// 	Creates a texture from memory and passes it to the TextureReceiver callback when finished.
 		///----------------------------------------------------------------------------------------------------
 		TEXTURES_LOADFROMMEMORY				LoadFromMemory;
-	};
-	TexturesVT								Textures;
+	}									Textures;
 
 	/* Shortcuts */
-	struct QuickAccessVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Add:
@@ -685,11 +675,10 @@ typedef struct AddonAPI
 		/// 	Removes a simple shortcut / context item with the given identifier from Quick Access.
 		///----------------------------------------------------------------------------------------------------
 		QUICKACCESS_GENERIC					RemoveContextMenu;
-	};
-	QuickAccessVT							QuickAccess;
+	}									QuickAccess;
 
 	/* Localization */
-	struct LocalizationVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Translate:
@@ -706,11 +695,10 @@ typedef struct AddonAPI
 		/// 	Set a translated string at runtime.
 		///----------------------------------------------------------------------------------------------------
 		LOCALIZATION_SET					Set;
-	};
-	LocalizationVT							Localization;
+	}									Localization;
 
 	/* Fonts */
-	struct FontsVT
+	struct
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Get:
@@ -742,8 +730,7 @@ typedef struct AddonAPI
 		/// 	Resizes a font and sends updates to the callback.
 		///----------------------------------------------------------------------------------------------------
 		FONTS_RESIZE						Resize;
-	};
-	FontsVT									Fonts;
+	}									Fonts;
 } AddonAPI;
 
 typedef void (*ADDON_LOAD) (AddonAPI* aAPI);
