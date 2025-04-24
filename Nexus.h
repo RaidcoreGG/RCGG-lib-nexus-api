@@ -123,9 +123,8 @@ typedef enum EGameBinds
 	EGameBinds_MoveDodge = 6,
 	EGameBinds_MoveAutoRun = 7,
 	EGameBinds_MoveWalk = 8,
-	EGameBinds_MoveJump = 9,
-	EGameBinds_MoveSwimUp = 10,
-	EGameBinds_MoveSwimDown = 11,
+	EGameBinds_MoveJump_SwimUp_FlyUp = 9,
+	EGameBinds_MoveSwimDown_FlyDown = 11,
 	EGameBinds_MoveAboutFace = 12,
 
 	// Skills
