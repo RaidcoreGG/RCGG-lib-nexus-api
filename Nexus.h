@@ -308,6 +308,7 @@ typedef enum EGameBinds
 	EGameBinds_Loadout6 = 176,
 	EGameBinds_Loadout7 = 177,
 	EGameBinds_Loadout8 = 178,
+	EGameBinds_Loadout9 = 179,
 
 	// Equipment Templates
 	EGameBinds_GearLoadout1 = 182,
@@ -317,7 +318,8 @@ typedef enum EGameBinds
 	EGameBinds_GearLoadout5 = 186,
 	EGameBinds_GearLoadout6 = 187,
 	EGameBinds_GearLoadout7 = 188,
-	EGameBinds_GearLoadout8 = 189
+	EGameBinds_GearLoadout8 = 189,
+	EGameBinds_GearLoadout9 = 190
 } EGameBinds;
 
 typedef void (*GAMEBINDS_PRESSASYNC)(EGameBinds aGameBind);
