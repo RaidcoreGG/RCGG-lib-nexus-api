@@ -1,8 +1,7 @@
-#ifndef NEXUS_H
-#define NEXUS_H
+#ifndef NEXUS_HPP
+#define NEXUS_HPP
 
 #include <windows.h>
-#include <stdbool.h>
 
 #define NEXUS_API_VERSION 6
 
@@ -398,7 +397,7 @@ typedef struct AddonAPI
 	void* ImguiMalloc;
 	void* ImguiFree;
 
-	typedef struct RendererVT
+	struct RendererVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Register:
@@ -411,7 +410,7 @@ typedef struct AddonAPI
 		/// 	Removes the registered render callback that is passed.
 		///----------------------------------------------------------------------------------------------------
 		GUI_REMRENDER						Deregister;
-	} RenderVT;
+	};
 	RendererVT								Renderer;
 
 	///----------------------------------------------------------------------------------------------------
@@ -426,7 +425,7 @@ typedef struct AddonAPI
 	LOGGER_LOG2								Log;
 
 	/* User Interface */
-	typedef struct UIVT
+	struct UIVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// SendAlert:
@@ -443,29 +442,29 @@ typedef struct AddonAPI
 		/// 	Deregisters a window name to listen to on escape.
 		///----------------------------------------------------------------------------------------------------
 		GUI_DEREGISTERCLOSEONESCAPE			DeregisterCloseOnEscape;
-	} UIVT;
+	};
 	UIVT									UI;
 
 	/* Paths */
-	typedef struct PathsVT
+	struct PathsVT
 	{
 		PATHS_GETGAMEDIR					GetGameDirectory;
 		PATHS_GETADDONDIR					GetAddonDirectory;
 		PATHS_GETCOMMONDIR					GetCommonDirectory;
-	} PathsVT;
+	};
 	PathsVT									Paths;
 
 	/* Minhook */
-	typedef struct MinHookVT
+	struct MinHookVT
 	{
 		MINHOOK_CREATE						Create;
 		MINHOOK_REMOVE						Remove;
 		MINHOOK_ENABLE						Enable;
 		MINHOOK_DISABLE						Disable;
-	} MinHookVT;
+	};
 	MinHookVT								MinHook;
 
-	typedef struct EventsVT
+	struct EventsVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Raise:
@@ -500,11 +499,11 @@ typedef struct AddonAPI
 		/// 	Deregisters an event callback.
 		///----------------------------------------------------------------------------------------------------
 		EVENTS_SUBSCRIBE					Unsubscribe;
-	} EventsVT;
+	};
 	EventsVT								Events;
 
 	/* WndProc */
-	typedef struct WndProcVT
+	struct WndProcVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Register:
@@ -521,11 +520,11 @@ typedef struct AddonAPI
 		/// 	Sends a WndProc to the game only and bypasses all other hooks.
 		///----------------------------------------------------------------------------------------------------
 		WNDPROC_SENDTOGAME					SendToGameOnly;
-	} WndProcVT;
+	};
 	WndProcVT								WndProc;
 
 	/* InputBinds */
-	typedef struct InputBindsVT
+	struct InputBindsVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Invoke:
@@ -548,11 +547,11 @@ typedef struct AddonAPI
 		/// 	Deregisters a KeybindHandler callback.
 		///----------------------------------------------------------------------------------------------------
 		KEYBINDS_DEREGISTER					Deregister;
-	} InputBindsVT;
+	};
 	InputBindsVT							InputBinds;
 
 	/* GameBinds */
-	typedef struct GameBindsVT
+	struct GameBindsVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Deregister:
@@ -584,11 +583,11 @@ typedef struct AddonAPI
 		/// 	Returns if a given game bind is set.
 		///----------------------------------------------------------------------------------------------------
 		GAMEBINDS_ISBOUND					IsBound;
-	} GameBindsVT;
+	};
 	GameBindsVT								GameBinds;
 
 	/* DataLink */
-	typedef struct DataLinkVT
+	struct DataLinkVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Get:
@@ -600,11 +599,11 @@ typedef struct AddonAPI
 		/// 	Allocates a shared resource of given size and returns a pointer to it for writing.
 		///----------------------------------------------------------------------------------------------------
 		DATALINK_SHARERESOURCE				Share;
-	} DataLinkVT;
+	};
 	DataLinkVT								DataLink;
 
 	/* Textures */
-	typedef struct TexturesVT
+	struct TexturesVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Get:
@@ -651,11 +650,11 @@ typedef struct AddonAPI
 		/// 	Creates a texture from memory and passes it to the TextureReceiver callback when finished.
 		///----------------------------------------------------------------------------------------------------
 		TEXTURES_LOADFROMMEMORY				LoadFromMemory;
-	} TexturesVT;
+	};
 	TexturesVT								Textures;
 
 	/* Shortcuts */
-	typedef struct QuickAccessVT
+	struct QuickAccessVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Add:
@@ -683,11 +682,11 @@ typedef struct AddonAPI
 		/// 	Removes a simple shortcut / context item with the given identifier from Quick Access.
 		///----------------------------------------------------------------------------------------------------
 		QUICKACCESS_GENERIC					RemoveContextMenu;
-	} QuickAccessVT;
+	};
 	QuickAccessVT							QuickAccess;
 
 	/* Localization */
-	typedef struct LocalizationVT
+	struct LocalizationVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Translate:
@@ -704,11 +703,11 @@ typedef struct AddonAPI
 		/// 	Set a translated string at runtime.
 		///----------------------------------------------------------------------------------------------------
 		LOCALIZATION_SET					Set;
-	} LocalizationVT;
+	};
 	LocalizationVT							Localization;
 
 	/* Fonts */
-	typedef struct FontsVT
+	struct FontsVT
 	{
 		///----------------------------------------------------------------------------------------------------
 		/// Get:
@@ -740,7 +739,7 @@ typedef struct AddonAPI
 		/// 	Resizes a font and sends updates to the callback.
 		///----------------------------------------------------------------------------------------------------
 		FONTS_RESIZE						Resize;
-	} FontsVT;
+	};
 	FontsVT									Fonts;
 } AddonAPI;
 
