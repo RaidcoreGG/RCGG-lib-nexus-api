@@ -1,13 +1,18 @@
 #ifndef NEXUS_H
 #define NEXUS_H
 
-#include <windows.h>
+#include <Windows.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
 #endif
 
 #define NEXUS_API_VERSION 6
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 typedef enum ERenderType
 {
@@ -393,6 +398,327 @@ typedef struct NexusLinkData
 	void*		FontUI;		// ImFont*
 } NexusLinkData;
 
+struct RendererVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Register:
+	/// 	Registers a render callback, ERenderType is either Pre, Present, Post or Options,
+	/// 	callback should be of void func().
+	///----------------------------------------------------------------------------------------------------
+	GUI_ADDRENDER						Register;
+	///----------------------------------------------------------------------------------------------------
+	/// Deregister:
+	/// 	Removes the registered render callback that is passed.
+	///----------------------------------------------------------------------------------------------------
+	GUI_REMRENDER						Deregister;
+};
+
+/* User Interface */
+struct UIVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// SendAlert:
+	/// 	Sends a text alert to the user visible for a short amount of time.
+	///----------------------------------------------------------------------------------------------------
+	ALERTS_NOTIFY						SendAlert;
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterCloseOnEscape:
+	/// 	Registers a window name to get its bool toggled when escape is pressed.
+	///----------------------------------------------------------------------------------------------------
+	GUI_REGISTERCLOSEONESCAPE			RegisterCloseOnEscape;
+	///----------------------------------------------------------------------------------------------------
+	/// DeregisterCloseOnEscape:
+	/// 	Deregisters a window name to listen to on escape.
+	///----------------------------------------------------------------------------------------------------
+	GUI_DEREGISTERCLOSEONESCAPE			DeregisterCloseOnEscape;
+};
+
+/* Paths */
+struct PathsVT
+{
+	PATHS_GETGAMEDIR					GetGameDirectory;
+	PATHS_GETADDONDIR					GetAddonDirectory;
+	PATHS_GETCOMMONDIR					GetCommonDirectory;
+};
+
+/* Minhook */
+struct MinHookVT
+{
+	MINHOOK_CREATE						Create;
+	MINHOOK_REMOVE						Remove;
+	MINHOOK_ENABLE						Enable;
+	MINHOOK_DISABLE						Disable;
+};
+
+struct EventsVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Raise:
+	/// 	Raises an event to all subscribing addons.
+	/// 	aEventData is a pointer to the data you want to share or nullptr.
+	/// 	Addons are responsible for knowing how to interpret this data.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_RAISE						Raise;
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseNotification:
+	/// 	Raises an event without a payload.
+	/// 	Synonymous with RaiseEvent("EV_FOO", nullptr);
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_RAISENOTIFICATION			RaiseNotification;
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseTargeted:
+	/// 	Raises an event targeted at a specific subscriber.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_RAISE_TARGETED				RaiseTargeted;
+	///----------------------------------------------------------------------------------------------------
+	/// RaiseNotificationTargeted:
+	/// 	Raises a notification (event without payload) targeted at a specific subscriber.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_RAISENOTIFICATION_TARGETED	RaiseNotificationTargeted;
+	///----------------------------------------------------------------------------------------------------
+	/// Subscribe:
+	/// 	Registers an event callback.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_SUBSCRIBE					Subscribe;
+	///----------------------------------------------------------------------------------------------------
+	/// Unsubscribe:
+	/// 	Deregisters an event callback.
+	///----------------------------------------------------------------------------------------------------
+	EVENTS_SUBSCRIBE					Unsubscribe;
+};
+
+/* WndProc */
+struct WndProcVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Register:
+	/// 	Registers/Deregisters a WndProc callback.
+	///----------------------------------------------------------------------------------------------------
+	WNDPROC_ADDREM						Register;
+	///----------------------------------------------------------------------------------------------------
+	/// Deregister:
+	/// 	Registers/Deregisters a WndProc callback.
+	///----------------------------------------------------------------------------------------------------
+	WNDPROC_ADDREM						Deregister;
+	///----------------------------------------------------------------------------------------------------
+	/// SendToGameOnly:
+	/// 	Sends a WndProc to the game only and bypasses all other hooks.
+	///----------------------------------------------------------------------------------------------------
+	WNDPROC_SENDTOGAME					SendToGameOnly;
+};
+
+/* InputBinds */
+struct InputBindsVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Invoke:
+	/// 	Trigger a keybind programmatically.
+	///----------------------------------------------------------------------------------------------------
+	KEYBINDS_INVOKE						Invoke;
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterWithString:
+	/// 	Registers a KeybindHandler callback for a given named keybind.
+	/// 	aKeybind is the default if not yet defined. Use as "ALT+CTRL+SHIFT+Q", "ALT+SHIFT+T", etc.
+	///----------------------------------------------------------------------------------------------------
+	KEYBINDS_REGISTERWITHSTRING			RegisterWithString;
+	///----------------------------------------------------------------------------------------------------
+	/// RegisterWithStruct:
+	/// 	Same as KEYBINDS_REGISTERWITHSTRING except you pass a Nexus Keybind struct as a default bind.
+	///----------------------------------------------------------------------------------------------------
+	KEYBINDS_REGISTERWITHSTRUCT			RegisterWithStruct;
+	///----------------------------------------------------------------------------------------------------
+	/// Deregister:
+	/// 	Deregisters a KeybindHandler callback.
+	///----------------------------------------------------------------------------------------------------
+	KEYBINDS_DEREGISTER					Deregister;
+};
+
+/* GameBinds */
+struct GameBindsVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Deregister:
+	/// 	Presses the keys of a given bind
+	///----------------------------------------------------------------------------------------------------
+	GAMEBINDS_PRESSASYNC				PressAsync;
+	///----------------------------------------------------------------------------------------------------
+	/// ReleaseAsync:
+	/// 	Releases the keypresses of a given bind.
+	///----------------------------------------------------------------------------------------------------
+	GAMEBINDS_RELEASEASYNC				ReleaseAsync;
+	///----------------------------------------------------------------------------------------------------
+	/// InvokeAsync:
+	/// 	Sends the keys of a given bind and then releases them after a given duration.
+	///----------------------------------------------------------------------------------------------------
+	GAMEBINDS_INVOKEASYNC				InvokeAsync;
+	///----------------------------------------------------------------------------------------------------
+	/// Press:
+	/// 	Presses the keys of a given bind
+	///----------------------------------------------------------------------------------------------------
+	GAMEBINDS_PRESS						Press;
+	///----------------------------------------------------------------------------------------------------
+	/// Release:
+	/// 	Releases the keypresses of a given bind.
+	///----------------------------------------------------------------------------------------------------
+	GAMEBINDS_RELEASE					Release;
+	///----------------------------------------------------------------------------------------------------
+	/// IsBound:
+	/// 	Returns if a given game bind is set.
+	///----------------------------------------------------------------------------------------------------
+	GAMEBINDS_ISBOUND					IsBound;
+};
+
+/* DataLink */
+struct DataLinkVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Get:
+	/// 	Returns a pointer to the requested resource or nullptr if not existing.
+	///----------------------------------------------------------------------------------------------------
+	DATALINK_GETRESOURCE				Get;
+	///----------------------------------------------------------------------------------------------------
+	/// Share:
+	/// 	Allocates a shared resource of given size and returns a pointer to it for writing.
+	///----------------------------------------------------------------------------------------------------
+	DATALINK_SHARERESOURCE				Share;
+};
+
+/* Textures */
+struct TexturesVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Get:
+	/// 	Returns a Texture* or nullptr if it doesn't exist.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_GET						Get;
+	///----------------------------------------------------------------------------------------------------
+	/// GetOrCreateFromFile:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from file.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_GETORCREATEFROMFILE		GetOrCreateFromFile;
+	///----------------------------------------------------------------------------------------------------
+	/// GetOrCreateFromResource:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from resource.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_GETORCREATEFROMRESOURCE	GetOrCreateFromResource;
+	///----------------------------------------------------------------------------------------------------
+	/// GetOrCreateFromURL:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from URL.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_GETORCREATEFROMURL			GetOrCreateFromURL;
+	///----------------------------------------------------------------------------------------------------
+	/// GetOrCreateFromMemory:
+	/// 	Returns a Texture* or if it doesn't exist yet creates it from memory.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_GETORCREATEFROMMEMORY		GetOrCreateFromMemory;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadFromFile:
+	/// 	Creates a texture from file and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_LOADFROMFILE				LoadFromFile;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadFromResource:
+	/// 	Creates a texture from resource and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_LOADFROMRESOURCE			LoadFromResource;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadFromURL:
+	/// 	Creates a texture from URL and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_LOADFROMURL				LoadFromURL;
+	///----------------------------------------------------------------------------------------------------
+	/// LoadFromMemory:
+	/// 	Creates a texture from memory and passes it to the TextureReceiver callback when finished.
+	///----------------------------------------------------------------------------------------------------
+	TEXTURES_LOADFROMMEMORY				LoadFromMemory;
+};
+
+/* Shortcuts */
+struct QuickAccessVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Add:
+	/// 	Adds a shortcut icon to the QuickAccess with given texture identifiers.
+	/// 	When clicked aKeybindIdentifier will be invoked.
+	///----------------------------------------------------------------------------------------------------
+	QUICKACCESS_ADDSHORTCUT				Add;
+	///----------------------------------------------------------------------------------------------------
+	/// Remove:
+	/// 	Removes a shortcut with the given identifier from Quick Access.
+	///----------------------------------------------------------------------------------------------------
+	QUICKACCESS_GENERIC					Remove;
+	///----------------------------------------------------------------------------------------------------
+	/// Notify:
+	/// 	Sends a notification icon to the given shortcut.
+	///----------------------------------------------------------------------------------------------------
+	QUICKACCESS_GENERIC					Notify;
+	///----------------------------------------------------------------------------------------------------
+	/// AddContextMenu:
+	/// 	Appends ImGui callback when right-clicking a shortcut icon.
+	///----------------------------------------------------------------------------------------------------
+	QUICKACCESS_ADDSIMPLE2				AddContextMenu;
+	///----------------------------------------------------------------------------------------------------
+	/// RemoveContextMenu:
+	/// 	Removes a simple shortcut / context item with the given identifier from Quick Access.
+	///----------------------------------------------------------------------------------------------------
+	QUICKACCESS_GENERIC					RemoveContextMenu;
+};
+
+/* Localization */
+struct LocalizationVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Translate:
+	/// 	Translates aIdentifier into current active language or returns aIdentifier if not available.
+	///----------------------------------------------------------------------------------------------------
+	LOCALIZATION_TRANSLATE				Translate;
+	///----------------------------------------------------------------------------------------------------
+	/// TranslateTo:
+	/// 	Same as Translate except you can pass which language you want to translate to.
+	///----------------------------------------------------------------------------------------------------
+	LOCALIZATION_TRANSLATETO			TranslateTo;
+	///----------------------------------------------------------------------------------------------------
+	/// Set:
+	/// 	Set a translated string at runtime.
+	///----------------------------------------------------------------------------------------------------
+	LOCALIZATION_SET					Set;
+};
+
+/* Fonts */
+struct FontsVT
+{
+	///----------------------------------------------------------------------------------------------------
+	/// Get:
+	/// 	Requests a font to be sent to the given callback/receiver.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_GETRELEASE					Get;
+	///----------------------------------------------------------------------------------------------------
+	/// Release:
+	/// 	Releases a callback/receiver from a specific font.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_GETRELEASE					Release;
+	///----------------------------------------------------------------------------------------------------
+	/// AddFromFile:
+	/// 	Adds a font from disk and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_ADDFROMFILE					AddFromFile;
+	///----------------------------------------------------------------------------------------------------
+	/// AddFromResource:
+	/// 	Adds a font from an embedded resource and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_ADDFROMRESOURCE				AddFromResource;
+	///----------------------------------------------------------------------------------------------------
+	/// AddFromMemory:
+	/// 	Adds a font from memory and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_ADDFROMMEMORY					AddFromMemory;
+	///----------------------------------------------------------------------------------------------------
+	/// Resize:
+	/// 	Resizes a font and sends updates to the callback.
+	///----------------------------------------------------------------------------------------------------
+	FONTS_RESIZE						Resize;
+};
+
 typedef struct AddonAPI
 {
 	/* Renderer */
@@ -401,21 +727,7 @@ typedef struct AddonAPI
 	void* ImguiMalloc;
 	void* ImguiFree;
 
-	struct RendererVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Register:
-		/// 	Registers a render callback, ERenderType is either Pre, Present, Post or Options,
-		/// 	callback should be of void func().
-		///----------------------------------------------------------------------------------------------------
-		GUI_ADDRENDER						Register;
-		///----------------------------------------------------------------------------------------------------
-		/// Deregister:
-		/// 	Removes the registered render callback that is passed.
-		///----------------------------------------------------------------------------------------------------
-		GUI_REMRENDER						Deregister;
-	};
-	RendererVT								Renderer;
+	struct RendererVT								Renderer;
 
 	///----------------------------------------------------------------------------------------------------
 	/// RequestUpdate:
@@ -428,323 +740,29 @@ typedef struct AddonAPI
 	/* Logging */
 	LOGGER_LOG2								Log;
 
-	/* User Interface */
-	struct UIVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// SendAlert:
-		/// 	Sends a text alert to the user visible for a short amount of time.
-		///----------------------------------------------------------------------------------------------------
-		ALERTS_NOTIFY						SendAlert;
-		///----------------------------------------------------------------------------------------------------
-		/// RegisterCloseOnEscape:
-		/// 	Registers a window name to get its bool toggled when escape is pressed.
-		///----------------------------------------------------------------------------------------------------
-		GUI_REGISTERCLOSEONESCAPE			RegisterCloseOnEscape;
-		///----------------------------------------------------------------------------------------------------
-		/// DeregisterCloseOnEscape:
-		/// 	Deregisters a window name to listen to on escape.
-		///----------------------------------------------------------------------------------------------------
-		GUI_DEREGISTERCLOSEONESCAPE			DeregisterCloseOnEscape;
-	};
-	UIVT									UI;
+	struct UIVT									UI;
 
-	/* Paths */
-	struct PathsVT
-	{
-		PATHS_GETGAMEDIR					GetGameDirectory;
-		PATHS_GETADDONDIR					GetAddonDirectory;
-		PATHS_GETCOMMONDIR					GetCommonDirectory;
-	};
-	PathsVT									Paths;
+	struct PathsVT									Paths;
 
-	/* Minhook */
-	struct MinHookVT
-	{
-		MINHOOK_CREATE						Create;
-		MINHOOK_REMOVE						Remove;
-		MINHOOK_ENABLE						Enable;
-		MINHOOK_DISABLE						Disable;
-	};
-	MinHookVT								MinHook;
+	struct MinHookVT								MinHook;
 
-	struct EventsVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Raise:
-		/// 	Raises an event to all subscribing addons.
-		/// 	aEventData is a pointer to the data you want to share or nullptr.
-		/// 	Addons are responsible for knowing how to interpret this data.
-		///----------------------------------------------------------------------------------------------------
-		EVENTS_RAISE						Raise;
-		///----------------------------------------------------------------------------------------------------
-		/// RaiseNotification:
-		/// 	Raises an event without a payload.
-		/// 	Synonymous with RaiseEvent("EV_FOO", nullptr);
-		///----------------------------------------------------------------------------------------------------
-		EVENTS_RAISENOTIFICATION			RaiseNotification;
-		///----------------------------------------------------------------------------------------------------
-		/// RaiseTargeted:
-		/// 	Raises an event targeted at a specific subscriber.
-		///----------------------------------------------------------------------------------------------------
-		EVENTS_RAISE_TARGETED				RaiseTargeted;
-		///----------------------------------------------------------------------------------------------------
-		/// RaiseNotificationTargeted:
-		/// 	Raises a notification (event without payload) targeted at a specific subscriber.
-		///----------------------------------------------------------------------------------------------------
-		EVENTS_RAISENOTIFICATION_TARGETED	RaiseNotificationTargeted;
-		///----------------------------------------------------------------------------------------------------
-		/// Subscribe:
-		/// 	Registers an event callback.
-		///----------------------------------------------------------------------------------------------------
-		EVENTS_SUBSCRIBE					Subscribe;
-		///----------------------------------------------------------------------------------------------------
-		/// Unsubscribe:
-		/// 	Deregisters an event callback.
-		///----------------------------------------------------------------------------------------------------
-		EVENTS_SUBSCRIBE					Unsubscribe;
-	};
-	EventsVT								Events;
+	struct EventsVT								Events;
 
-	/* WndProc */
-	struct WndProcVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Register:
-		/// 	Registers/Deregisters a WndProc callback.
-		///----------------------------------------------------------------------------------------------------
-		WNDPROC_ADDREM						Register;
-		///----------------------------------------------------------------------------------------------------
-		/// Deregister:
-		/// 	Registers/Deregisters a WndProc callback.
-		///----------------------------------------------------------------------------------------------------
-		WNDPROC_ADDREM						Deregister;
-		///----------------------------------------------------------------------------------------------------
-		/// SendToGameOnly:
-		/// 	Sends a WndProc to the game only and bypasses all other hooks.
-		///----------------------------------------------------------------------------------------------------
-		WNDPROC_SENDTOGAME					SendToGameOnly;
-	};
-	WndProcVT								WndProc;
+	struct WndProcVT								WndProc;
 
-	/* InputBinds */
-	struct InputBindsVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Invoke:
-		/// 	Trigger a keybind programmatically.
-		///----------------------------------------------------------------------------------------------------
-		KEYBINDS_INVOKE						Invoke;
-		///----------------------------------------------------------------------------------------------------
-		/// RegisterWithString:
-		/// 	Registers a KeybindHandler callback for a given named keybind.
-		/// 	aKeybind is the default if not yet defined. Use as "ALT+CTRL+SHIFT+Q", "ALT+SHIFT+T", etc.
-		///----------------------------------------------------------------------------------------------------
-		KEYBINDS_REGISTERWITHSTRING			RegisterWithString;
-		///----------------------------------------------------------------------------------------------------
-		/// RegisterWithStruct:
-		/// 	Same as KEYBINDS_REGISTERWITHSTRING except you pass a Nexus Keybind struct as a default bind.
-		///----------------------------------------------------------------------------------------------------
-		KEYBINDS_REGISTERWITHSTRUCT			RegisterWithStruct;
-		///----------------------------------------------------------------------------------------------------
-		/// Deregister:
-		/// 	Deregisters a KeybindHandler callback.
-		///----------------------------------------------------------------------------------------------------
-		KEYBINDS_DEREGISTER					Deregister;
-	};
-	InputBindsVT							InputBinds;
+	struct InputBindsVT							InputBinds;
 
-	/* GameBinds */
-	struct GameBindsVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Deregister:
-		/// 	Presses the keys of a given bind
-		///----------------------------------------------------------------------------------------------------
-		GAMEBINDS_PRESSASYNC				PressAsync;
-		///----------------------------------------------------------------------------------------------------
-		/// ReleaseAsync:
-		/// 	Releases the keypresses of a given bind.
-		///----------------------------------------------------------------------------------------------------
-		GAMEBINDS_RELEASEASYNC				ReleaseAsync;
-		///----------------------------------------------------------------------------------------------------
-		/// InvokeAsync:
-		/// 	Sends the keys of a given bind and then releases them after a given duration.
-		///----------------------------------------------------------------------------------------------------
-		GAMEBINDS_INVOKEASYNC				InvokeAsync;
-		///----------------------------------------------------------------------------------------------------
-		/// Press:
-		/// 	Presses the keys of a given bind
-		///----------------------------------------------------------------------------------------------------
-		GAMEBINDS_PRESS						Press;
-		///----------------------------------------------------------------------------------------------------
-		/// Release:
-		/// 	Releases the keypresses of a given bind.
-		///----------------------------------------------------------------------------------------------------
-		GAMEBINDS_RELEASE					Release;
-		///----------------------------------------------------------------------------------------------------
-		/// IsBound:
-		/// 	Returns if a given game bind is set.
-		///----------------------------------------------------------------------------------------------------
-		GAMEBINDS_ISBOUND					IsBound;
-	};
-	GameBindsVT								GameBinds;
+	struct GameBindsVT								GameBinds;
 
-	/* DataLink */
-	struct DataLinkVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Get:
-		/// 	Returns a pointer to the requested resource or nullptr if not existing.
-		///----------------------------------------------------------------------------------------------------
-		DATALINK_GETRESOURCE				Get;
-		///----------------------------------------------------------------------------------------------------
-		/// Share:
-		/// 	Allocates a shared resource of given size and returns a pointer to it for writing.
-		///----------------------------------------------------------------------------------------------------
-		DATALINK_SHARERESOURCE				Share;
-	};
-	DataLinkVT								DataLink;
+	struct DataLinkVT								DataLink;
 
-	/* Textures */
-	struct TexturesVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Get:
-		/// 	Returns a Texture* or nullptr if it doesn't exist.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_GET						Get;
-		///----------------------------------------------------------------------------------------------------
-		/// GetOrCreateFromFile:
-		/// 	Returns a Texture* or if it doesn't exist yet creates it from file.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_GETORCREATEFROMFILE		GetOrCreateFromFile;
-		///----------------------------------------------------------------------------------------------------
-		/// GetOrCreateFromResource:
-		/// 	Returns a Texture* or if it doesn't exist yet creates it from resource.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_GETORCREATEFROMRESOURCE	GetOrCreateFromResource;
-		///----------------------------------------------------------------------------------------------------
-		/// GetOrCreateFromURL:
-		/// 	Returns a Texture* or if it doesn't exist yet creates it from URL.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_GETORCREATEFROMURL			GetOrCreateFromURL;
-		///----------------------------------------------------------------------------------------------------
-		/// GetOrCreateFromMemory:
-		/// 	Returns a Texture* or if it doesn't exist yet creates it from memory.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_GETORCREATEFROMMEMORY		GetOrCreateFromMemory;
-		///----------------------------------------------------------------------------------------------------
-		/// LoadFromFile:
-		/// 	Creates a texture from file and passes it to the TextureReceiver callback when finished.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_LOADFROMFILE				LoadFromFile;
-		///----------------------------------------------------------------------------------------------------
-		/// LoadFromResource:
-		/// 	Creates a texture from resource and passes it to the TextureReceiver callback when finished.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_LOADFROMRESOURCE			LoadFromResource;
-		///----------------------------------------------------------------------------------------------------
-		/// LoadFromURL:
-		/// 	Creates a texture from URL and passes it to the TextureReceiver callback when finished.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_LOADFROMURL				LoadFromURL;
-		///----------------------------------------------------------------------------------------------------
-		/// LoadFromMemory:
-		/// 	Creates a texture from memory and passes it to the TextureReceiver callback when finished.
-		///----------------------------------------------------------------------------------------------------
-		TEXTURES_LOADFROMMEMORY				LoadFromMemory;
-	};
-	TexturesVT								Textures;
+	struct TexturesVT								Textures;
 
-	/* Shortcuts */
-	struct QuickAccessVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Add:
-		/// 	Adds a shortcut icon to the QuickAccess with given texture identifiers.
-		/// 	When clicked aKeybindIdentifier will be invoked.
-		///----------------------------------------------------------------------------------------------------
-		QUICKACCESS_ADDSHORTCUT				Add;
-		///----------------------------------------------------------------------------------------------------
-		/// Remove:
-		/// 	Removes a shortcut with the given identifier from Quick Access.
-		///----------------------------------------------------------------------------------------------------
-		QUICKACCESS_GENERIC					Remove;
-		///----------------------------------------------------------------------------------------------------
-		/// Notify:
-		/// 	Sends a notification icon to the given shortcut.
-		///----------------------------------------------------------------------------------------------------
-		QUICKACCESS_GENERIC					Notify;
-		///----------------------------------------------------------------------------------------------------
-		/// AddContextMenu:
-		/// 	Appends ImGui callback when right-clicking a shortcut icon.
-		///----------------------------------------------------------------------------------------------------
-		QUICKACCESS_ADDSIMPLE2				AddContextMenu;
-		///----------------------------------------------------------------------------------------------------
-		/// RemoveContextMenu:
-		/// 	Removes a simple shortcut / context item with the given identifier from Quick Access.
-		///----------------------------------------------------------------------------------------------------
-		QUICKACCESS_GENERIC					RemoveContextMenu;
-	};
-	QuickAccessVT							QuickAccess;
+	struct QuickAccessVT							QuickAccess;
 
-	/* Localization */
-	struct LocalizationVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Translate:
-		/// 	Translates aIdentifier into current active language or returns aIdentifier if not available.
-		///----------------------------------------------------------------------------------------------------
-		LOCALIZATION_TRANSLATE				Translate;
-		///----------------------------------------------------------------------------------------------------
-		/// TranslateTo:
-		/// 	Same as Translate except you can pass which language you want to translate to.
-		///----------------------------------------------------------------------------------------------------
-		LOCALIZATION_TRANSLATETO			TranslateTo;
-		///----------------------------------------------------------------------------------------------------
-		/// Set:
-		/// 	Set a translated string at runtime.
-		///----------------------------------------------------------------------------------------------------
-		LOCALIZATION_SET					Set;
-	};
-	LocalizationVT							Localization;
+	struct LocalizationVT							Localization;
 
-	/* Fonts */
-	struct FontsVT
-	{
-		///----------------------------------------------------------------------------------------------------
-		/// Get:
-		/// 	Requests a font to be sent to the given callback/receiver.
-		///----------------------------------------------------------------------------------------------------
-		FONTS_GETRELEASE					Get;
-		///----------------------------------------------------------------------------------------------------
-		/// Release:
-		/// 	Releases a callback/receiver from a specific font.
-		///----------------------------------------------------------------------------------------------------
-		FONTS_GETRELEASE					Release;
-		///----------------------------------------------------------------------------------------------------
-		/// AddFromFile:
-		/// 	Adds a font from disk and sends updates to the callback.
-		///----------------------------------------------------------------------------------------------------
-		FONTS_ADDFROMFILE					AddFromFile;
-		///----------------------------------------------------------------------------------------------------
-		/// AddFromResource:
-		/// 	Adds a font from an embedded resource and sends updates to the callback.
-		///----------------------------------------------------------------------------------------------------
-		FONTS_ADDFROMRESOURCE				AddFromResource;
-		///----------------------------------------------------------------------------------------------------
-		/// AddFromMemory:
-		/// 	Adds a font from memory and sends updates to the callback.
-		///----------------------------------------------------------------------------------------------------
-		FONTS_ADDFROMMEMORY					AddFromMemory;
-		///----------------------------------------------------------------------------------------------------
-		/// Resize:
-		/// 	Resizes a font and sends updates to the callback.
-		///----------------------------------------------------------------------------------------------------
-		FONTS_RESIZE						Resize;
-	};
-	FontsVT									Fonts;
+	struct FontsVT									Fonts;
 } AddonAPI;
 
 typedef void (*ADDON_LOAD) (AddonAPI* aAPI);
@@ -792,5 +810,9 @@ typedef struct AddonDefinition
 	EUpdateProvider Provider;       /* What platform is the the addon hosted on */
 	const char*     UpdateLink;     /* Link to the update resource */
 } AddonDefinition;
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
